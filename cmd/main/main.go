@@ -1,21 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"log"
+
+	frames "github.com/juanmachuca95/ahorcado_go/frames"
 )
 
 func main() {
-	log.Println("Todo okay -- arrancamos!.")
+	log.Println("Ahorcado Golang")
 
-	s := ` 
-	   _____
-	   |   |
-	  _O/  |
-	   |   |
-	  / \  |
-	 ______|
-	 `
+	var tries int = 8
 
-	fmt.Println(s)
+	for i := 0; i < tries; i++ {
+		frames.Inicial(i)
+		frames.FirstAttempt(i)
+		frames.SecondAttempt(i)
+		frames.ThirdAttempt(i)
+		frames.FourthAttempt(i)
+		frames.FifthAttempt(i)
+		frames.SixthAttempt(i)
+	}
 }
