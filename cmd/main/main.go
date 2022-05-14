@@ -6,25 +6,40 @@ import (
 	"strings"
 )
 
-func main() {
-	log.Println("MyGo - Game 'death by hanging'")
+var encontrados = []string{}
 
-	//var tries int = 8
-	clave := "Aprendiendo con Golang"
+func main() {
+	log.Println("MyGo - Game 'Death By Hanging'")
+
+	var tries int = 8
+	clave := "Golang"
 	clave = strings.ToTitle(clave)
 
 	log.Println("Find: ", clave)
 	var input string
 	var finded bool = false
+	var failed bool = false
 
-	for !finded {
+	for !finded && !failed {
 		fmt.Scan(&input)
 		input = strings.ToTitle(input)
 
 		if strings.Contains(clave, input) {
 			log.Println("El caracter", input, " SI esta 👍 - coincidencias: ", strings.Count(clave, input))
+			encontrados = append(encontrados, input)
+			if win(clave) {
+				finded = true
+				log.Println("🏆 Has ganado el juego ", encontrados)
+			}
 		} else {
-			log.Println("El caracter", input, " (NO) esta 👎 - coincidencias: ", strings.Count(clave, input))
+			tries--
+			log.Println("El caracter", input, " (NO) esta 👎 - coincidencias: ", strings.Count(clave, input), " Intentos: ", tries)
+		}
+
+		if tries == 0 {
+			failed = true
+
+			log.Println("Lo siento has perdido. ")
 		}
 	}
 
@@ -37,4 +52,20 @@ func main() {
 		frames.FifthAttempt(i)
 		frames.SixthAttempt(i)
 	} */
+}
+
+func win(clave string) bool {
+	var fin bool = false
+	var lengthClave int = len(clave)
+	var lengthEncontrados int = 0
+	for _, encontrado := range encontrados {
+		count := strings.Count(clave, encontrado)
+		lengthEncontrados += count
+	}
+
+	log.Println("Cantidad de encontrados = ", lengthEncontrados, " Cantidad total de la clave = ", lengthClave)
+	if lengthEncontrados == lengthClave {
+		fin = true
+	}
+	return fin
 }
