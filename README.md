@@ -1,2 +1,3 @@
 # DeathByHanging (Ahorcado) Golang
-Death By Hanging (Ahorcado) - Hecho en golang
+
+Esta primera implementación de Death By Hanging (Ahorcado) esta diseñada para una sola palabra por el momento.
