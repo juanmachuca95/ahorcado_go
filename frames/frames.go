@@ -1,6 +1,29 @@
 package frames
 
-import "fmt"
+import (
+	"fmt"
+)
+
+func Frames(try int) {
+	switch try {
+	case 0:
+		Inicial(try)
+	case 1:
+		FirstAttempt(try)
+	case 2:
+		SecondAttempt(try)
+	case 3:
+		ThirdAttempt(try)
+	case 4:
+		FourthAttempt(try)
+	case 5:
+		FifthAttempt(try)
+	case 6:
+		SixthAttempt(try)
+	default:
+		Inicial(0)
+	}
+}
 
 func Inicial(i int) {
 	if i == 0 {
@@ -12,7 +35,7 @@ func Inicial(i int) {
 			  / \  |
 			 ______|
 		`
-		fmt.Print(s)
+		fmt.Println(s)
 	}
 }
 
@@ -26,7 +49,7 @@ func FirstAttempt(i int) {
 			  /    |
 			 ______|
 		`
-		fmt.Print(s)
+		fmt.Println(s)
 	}
 }
 
@@ -40,7 +63,7 @@ func SecondAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Print(s)
+		fmt.Println(s)
 	}
 }
 
@@ -54,7 +77,7 @@ func ThirdAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Print(s)
+		fmt.Println(s)
 	}
 }
 
@@ -68,7 +91,7 @@ func FourthAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Print(s)
+		fmt.Println(s)
 	}
 }
 
@@ -82,7 +105,7 @@ func FifthAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Print(s)
+		fmt.Println(s)
 	}
 }
 
@@ -96,6 +119,6 @@ func SixthAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Print(s)
+		fmt.Println(s)
 	}
 }
