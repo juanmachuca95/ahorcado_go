@@ -1,17 +1,34 @@
 package main
 
 import (
+	"fmt"
 	"log"
-
-	frames "github.com/juanmachuca95/ahorcado_go/frames"
+	"strings"
 )
 
 func main() {
-	log.Println("Ahorcado Golang")
+	log.Println("MyGo - Game 'death by hanging'")
 
-	var tries int = 8
+	//var tries int = 8
+	clave := "Aprendiendo con Golang"
+	clave = strings.ToTitle(clave)
 
-	for i := 0; i < tries; i++ {
+	log.Println("Find: ", clave)
+	var input string
+	var finded bool = false
+
+	for !finded {
+		fmt.Scan(&input)
+		input = strings.ToTitle(input)
+
+		if strings.Contains(clave, input) {
+			log.Println("El caracter", input, " SI esta 👍 - coincidencias: ", strings.Count(clave, input))
+		} else {
+			log.Println("El caracter", input, " (NO) esta 👎 - coincidencias: ", strings.Count(clave, input))
+		}
+	}
+
+	/* for i := 0; i < tries; i++ {
 		frames.Inicial(i)
 		frames.FirstAttempt(i)
 		frames.SecondAttempt(i)
@@ -19,5 +36,5 @@ func main() {
 		frames.FourthAttempt(i)
 		frames.FifthAttempt(i)
 		frames.SixthAttempt(i)
-	}
+	} */
 }
