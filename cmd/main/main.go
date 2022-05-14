@@ -25,7 +25,15 @@ func main() {
 		fmt.Scan(&input)
 		input = strings.ToTitle(input)
 
-		if alreadyFound(input) {
+		if clave == input {
+			log.Println("Arriesgaste", input, " HAS GANADO 🏆 - coincidencias: TOTAL - palabra: ", clave)
+			finded = true
+		} else if len(input) > 1 {
+			tries--
+			frames.Frames(tries)
+			log.Println("Encontrados hasta el momento: ", encontrados)
+			log.Println("Arriesgaste", input, " HAS FALLADO 👎 - coincidencias: 0 - Intentos: ", tries)
+		} else if alreadyFound(input) {
 			log.Println("El caracter", input, " YA HA SIDO ENCONTRADO - coincidencias: ", strings.Count(clave, input))
 		} else if strings.Contains(clave, input) {
 			log.Println("El caracter", input, " SI esta 👍 - coincidencias: ", strings.Count(clave, input))
@@ -48,16 +56,6 @@ func main() {
 			log.Println("Lo siento has perdido. ")
 		}
 	}
-
-	/* for i := 0; i < tries; i++ {
-		frames.Inicial(i)
-		frames.FirstAttempt(i)
-		frames.SecondAttempt(i)
-		frames.ThirdAttempt(i)
-		frames.FourthAttempt(i)
-		frames.FifthAttempt(i)
-		frames.SixthAttempt(i)
-	} */
 }
 
 func win(clave string) bool {
