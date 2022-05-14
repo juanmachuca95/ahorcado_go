@@ -11,10 +11,10 @@ import (
 var encontrados = []string{}
 
 func main() {
-	log.Println("MyGo - Game 'Death By Hanging'")
+	log.Println("Death By Hanging - Juan Gabriel Machuca")
 
 	var tries int = 6
-	clave := "Laura"
+	clave := "Developer"
 	clave = strings.ToTitle(clave)
 
 	var input string
@@ -32,9 +32,9 @@ func main() {
 			tries--
 			frames.Frames(tries)
 			log.Println("Encontrados hasta el momento: ", encontrados)
-			log.Println("Arriesgaste", input, " HAS FALLADO 👎 - coincidencias: 0 - Intentos: ", tries)
+			log.Println("Arriesgaste", input, "HAS FALLADO 👎 - coincidencias: 0 - Intentos: ", tries)
 		} else if alreadyFound(input) {
-			log.Println("El caracter", input, " YA HA SIDO ENCONTRADO - coincidencias: ", strings.Count(clave, input))
+			log.Println("El caracter", input, "YA HA SIDO ENCONTRADO - coincidencias: ", strings.Count(clave, input))
 		} else if strings.Contains(clave, input) {
 			log.Println("El caracter", input, " SI esta 👍 - coincidencias: ", strings.Count(clave, input))
 			encontrados = append(encontrados, input)
