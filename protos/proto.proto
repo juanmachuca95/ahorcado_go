@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option go_package = "./generated";
+
+message Word {
+    string word = 1;
+}
+
+service Ahorcado {
+    rpc Ahorcado (stream Word) returns (stream Word);
+}
