@@ -8,6 +8,7 @@ import (
 
 	"github.com/juanmachuca95/ahorcado_go/generated"
 	"github.com/juanmachuca95/ahorcado_go/server"
+	game "github.com/juanmachuca95/ahorcado_go/services/game/gateway"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -15,6 +16,14 @@ import (
 var encontrados = []string{}
 
 func main() {
+	serviceGame := game.NewGameGateway()
+	getGame, err := serviceGame.GetGame()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("obteniendo el game: ", getGame.Word)
+
 	addr := fmt.Sprintf("0.0.0.0:%d", 8080)
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {

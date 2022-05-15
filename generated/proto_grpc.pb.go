@@ -44,7 +44,7 @@ func (c *ahorcadoClient) Ahorcado(ctx context.Context, opts ...grpc.CallOption) 
 
 type Ahorcado_AhorcadoClient interface {
 	Send(*Word) error
-	Recv() (*Word, error)
+	Recv() (*Game, error)
 	grpc.ClientStream
 }
 
@@ -56,8 +56,8 @@ func (x *ahorcadoAhorcadoClient) Send(m *Word) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *ahorcadoAhorcadoClient) Recv() (*Word, error) {
-	m := new(Word)
+func (x *ahorcadoAhorcadoClient) Recv() (*Game, error) {
+	m := new(Game)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func _Ahorcado_Ahorcado_Handler(srv interface{}, stream grpc.ServerStream) error
 }
 
 type Ahorcado_AhorcadoServer interface {
-	Send(*Word) error
+	Send(*Game) error
 	Recv() (*Word, error)
 	grpc.ServerStream
 }
@@ -106,7 +106,7 @@ type ahorcadoAhorcadoServer struct {
 	grpc.ServerStream
 }
 
-func (x *ahorcadoAhorcadoServer) Send(m *Word) error {
+func (x *ahorcadoAhorcadoServer) Send(m *Game) error {
 	return x.ServerStream.SendMsg(m)
 }
 

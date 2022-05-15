@@ -42,7 +42,7 @@ func (c *Connection) start() {
 	for running {
 		select {
 		case msg := <-c.send:
-			c.conn.Send(msg) // Ignoring the error, they just don't get this message.
+			c.conn.Send(&generated.Game{Word: msg.String()}) // Ignoring the error, they just don't get this message.
 		case <-c.quit:
 			running = false
 		}

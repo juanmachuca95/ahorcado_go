@@ -8,6 +8,8 @@ import (
 	"log"
 
 	"github.com/juanmachuca95/ahorcado_go/generated"
+	"github.com/juanmachuca95/ahorcado_go/services/game/models"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -19,6 +21,9 @@ var (
 	serverHostOverride = flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
 )
 
+var collection *mongo.Collection
+var ctx = context.TODO()
+
 func main() {
 	conn, err := grpc.Dial(*serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -26,9 +31,11 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := generated.NewAhorcadoClient(conn)
+	/* Titúlo */
+	log.Println("Death By Hanging - Go 👍")
 
-	log.Println("Cliente Golang - Ahorcado")
+	/* Ahorcado Client gRPC Go */
+	client := generated.NewAhorcadoClient(conn)
 	stream, err := client.Ahorcado(context.Background())
 	if err != nil {
 		log.Fatal(err)
@@ -39,7 +46,6 @@ func main() {
 		for {
 			in, err := stream.Recv()
 			if err == io.EOF {
-				// read done.
 				close(waitc)
 				return
 			}
@@ -62,4 +68,8 @@ func main() {
 	stream.CloseSend()
 	<-waitc
 
+}
+
+func getGame() models.Game {
+	return models.Game{}
 }

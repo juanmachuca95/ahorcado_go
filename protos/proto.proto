@@ -6,6 +6,12 @@ message Word {
     string word = 1;
 }
 
+message Game {
+    string word = 1;
+    string winner = 2;
+    repeated string encontrados = 3;
+}
+
 service Ahorcado {
-    rpc Ahorcado (stream Word) returns (stream Word);
+    rpc Ahorcado (stream Word) returns (stream Game);
 }
