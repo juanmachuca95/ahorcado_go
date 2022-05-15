@@ -26,7 +26,7 @@ func main() {
 		input = strings.ToTitle(input)
 
 		if clave == input {
-			log.Println("Arriesgaste", input, " HAS GANADO 🏆 - coincidencias: TOTAL - palabra: ", clave)
+			log.Println("Arriesgaste", input, "🏆 HAS GANADO | CLAVE ➡️  ", clave)
 			finded = true
 		} else if len(input) > 1 {
 			tries--
@@ -41,7 +41,7 @@ func main() {
 			log.Println("Encontrados: ", encontrados)
 			if win(clave) {
 				finded = true
-				log.Println("🏆 Has ganado el juego - la palabra era: ➡️ (", clave, ")")
+				log.Println("🏆 HAS GANADO | CLAVE ➡️  (", clave, ")")
 			}
 		} else {
 			tries--
