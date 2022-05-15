@@ -41,7 +41,7 @@ func main() {
 			log.Println("Encontrados: ", encontrados)
 			if win(clave) {
 				finded = true
-				log.Println("🏆 Has ganado el juego ", encontrados)
+				log.Println("🏆 Has ganado el juego - la palabra era: ➡️ (", clave, ")")
 			}
 		} else {
 			tries--
