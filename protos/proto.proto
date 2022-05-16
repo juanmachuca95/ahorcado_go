@@ -3,13 +3,17 @@ syntax = "proto3";
 option go_package = "./generated";
 
 message Word {
-    string word = 1;
+    string game_id = 1;
+    string user = 2;
+    string word = 3;
 }
 
 message Game {
-    string word = 1;
-    string winner = 2;
-    repeated string encontrados = 3;
+    string id = 1;
+    string word = 2;
+    string winner = 3;
+    repeated string encontrados = 4;
+    bool finalizada = 5;
 }
 
 service Ahorcado {

@@ -2,21 +2,25 @@ package server
 
 import (
 	"io"
+	"log"
 	"sync"
 
 	"github.com/juanmachuca95/ahorcado_go/generated"
+	game "github.com/juanmachuca95/ahorcado_go/services/game/gateway"
 )
 
 type Connection struct {
 	conn generated.Ahorcado_AhorcadoServer
-	send chan *generated.Word
+	send chan *generated.Game
+	recv chan *generated.Word
 	quit chan struct{}
 }
 
 func NewConnection(conn generated.Ahorcado_AhorcadoServer) *Connection {
 	c := &Connection{
 		conn: conn,
-		send: make(chan *generated.Word),
+		send: make(chan *generated.Game),
+		recv: make(chan *generated.Word),
 		quit: make(chan struct{}),
 	}
 	go c.start()
@@ -29,7 +33,7 @@ func (c *Connection) Close() error {
 	return nil
 }
 
-func (c *Connection) Send(msg *generated.Word) {
+func (c *Connection) Send(msg *generated.Game) {
 	defer func() {
 		// Ignore any errors about sending on a closed channel
 		recover()
@@ -81,6 +85,7 @@ func NewAhorcadoServer() *AhorcadoServer {
 		broadcast: make(chan *generated.Word),
 		quit:      make(chan struct{}),
 	}
+
 	go srv.start()
 	return srv
 }
@@ -92,12 +97,20 @@ func (c *AhorcadoServer) Close() error {
 
 func (c *AhorcadoServer) start() {
 	running := true
+	gameService := game.NewGameGateway()
 	for running {
 		select {
 		case msg := <-c.broadcast:
 			c.connLock.Lock()
+
+			game, err := gameService.GetGame(msg)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Println("Ya vemos que hacemos con el msj ", msg)
 			for _, v := range c.connections {
-				go v.Send(msg)
+				go v.Send(&game)
 			}
 			c.connLock.Unlock()
 		case <-c.quit:
