@@ -56,10 +56,6 @@ func (s *GameService) CreateGame() (models.Game, error) {
 }
 
 func (s *GameService) GetRandomGame() (generated.Game, error) {
-	//maxNum := 5 // The number of response attributes. Returns only one random car.
-	var games []models.Game
-	log.Println("Holanga")
-	//db.mycoll.aggregate([{ $sample: { size: 1 } }])
 	pipeline := []bson.D{bson.D{{"$sample", bson.D{{"size", 10}}}}}
 	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
 	if err != nil {
@@ -73,19 +69,22 @@ func (s *GameService) GetRandomGame() (generated.Game, error) {
 		}, err
 	}
 
+	var game models.Game
 	for cursor.Next(context.Background()) {
-		var game models.Game
 		err := cursor.Decode(&game)
-		log.Println(game)
 		if err != nil {
 			log.Fatal("Error decode - error: ", err.Error())
-		} else {
-			games = append(games, game)
 		}
 	}
 
-	log.Println("GAMES ---> algo llego", games)
-	return generated.Game{}, nil
+	return generated.Game{
+		Id:          game.Id.String(),
+		Word:        game.Word,
+		Winner:      game.Winner,
+		Encontrados: game.Encontrados,
+		Finalizada:  game.Finalizada,
+		Error:       "",
+	}, nil
 }
 
 func (s *GameService) GetGame(word *generated.Word) (generated.Game, error) {

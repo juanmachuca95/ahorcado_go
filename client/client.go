@@ -8,6 +8,7 @@ import (
 
 	"github.com/juanmachuca95/ahorcado_go/generated"
 	"github.com/juanmachuca95/ahorcado_go/services/game/models"
+	"github.com/pterm/pterm"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -42,7 +43,27 @@ func main() {
 
 	if game.Error != "" {
 		log.Println("🔥 - ", game.Error)
+		return
 	}
+
+	// Color
+	// primary  "255, 215, 0"
+	header := pterm.DefaultHeader.WithBackgroundStyle(pterm.DefaultHeader.BackgroundStyle)
+	pterm.DefaultCenter.Println(header.Sprintf("Made by @juanmachuca95"))
+
+	pterm.DefaultBigText.WithLetters(
+		pterm.NewLettersFromStringWithRGB("Ahorcado", pterm.NewRGB(255, 215, 0))).
+		Render()
+		// Declare panels in a two dimensional grid system.
+	panels := pterm.Panels{
+		{{Data: "[+] Empezar juego"}, {Data: "\n Ingresa 1 para comenzar a juagar\n"}},
+		{{Data: "[*] Ranking Podio"}, {Data: "\n Ingresa 2 para ver el Ranking actual del juego y tu número de posición\n"}},
+	}
+
+	// Print panels.
+	_ = pterm.DefaultPanel.WithPanels(panels).Render()
+	pterm.NewRGB(255, 215, 0).Println("GAME ID: ", game.Id, " - WORD: ", game.Word)
+	log.Println("*******************************")
 
 	/* stream, err := client.Ahorcado(context.Background())
 	if err != nil {

@@ -146,5 +146,6 @@ func (c *AhorcadoServer) GetRandomGame(context context.Context, req *generated.E
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
 	return &game, nil
 }
