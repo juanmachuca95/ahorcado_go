@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AhorcadoClient interface {
+	GetRandomGame(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Game, error)
 	Ahorcado(ctx context.Context, opts ...grpc.CallOption) (Ahorcado_AhorcadoClient, error)
 }
 
@@ -31,6 +32,15 @@ type ahorcadoClient struct {
 
 func NewAhorcadoClient(cc grpc.ClientConnInterface) AhorcadoClient {
 	return &ahorcadoClient{cc}
+}
+
+func (c *ahorcadoClient) GetRandomGame(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Game, error) {
+	out := new(Game)
+	err := c.cc.Invoke(ctx, "/Ahorcado/GetRandomGame", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *ahorcadoClient) Ahorcado(ctx context.Context, opts ...grpc.CallOption) (Ahorcado_AhorcadoClient, error) {
@@ -68,6 +78,7 @@ func (x *ahorcadoAhorcadoClient) Recv() (*Game, error) {
 // All implementations must embed UnimplementedAhorcadoServer
 // for forward compatibility
 type AhorcadoServer interface {
+	GetRandomGame(context.Context, *Empty) (*Game, error)
 	Ahorcado(Ahorcado_AhorcadoServer) error
 	mustEmbedUnimplementedAhorcadoServer()
 }
@@ -76,6 +87,9 @@ type AhorcadoServer interface {
 type UnimplementedAhorcadoServer struct {
 }
 
+func (UnimplementedAhorcadoServer) GetRandomGame(context.Context, *Empty) (*Game, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRandomGame not implemented")
+}
 func (UnimplementedAhorcadoServer) Ahorcado(Ahorcado_AhorcadoServer) error {
 	return status.Errorf(codes.Unimplemented, "method Ahorcado not implemented")
 }
@@ -90,6 +104,24 @@ type UnsafeAhorcadoServer interface {
 
 func RegisterAhorcadoServer(s grpc.ServiceRegistrar, srv AhorcadoServer) {
 	s.RegisterService(&Ahorcado_ServiceDesc, srv)
+}
+
+func _Ahorcado_GetRandomGame_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AhorcadoServer).GetRandomGame(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Ahorcado/GetRandomGame",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AhorcadoServer).GetRandomGame(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Ahorcado_Ahorcado_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -124,7 +156,12 @@ func (x *ahorcadoAhorcadoServer) Recv() (*Word, error) {
 var Ahorcado_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Ahorcado",
 	HandlerType: (*AhorcadoServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetRandomGame",
+			Handler:    _Ahorcado_GetRandomGame_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Ahorcado",

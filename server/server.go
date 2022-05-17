@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"io"
 	"log"
 	"sync"
@@ -78,12 +79,14 @@ type AhorcadoServer struct {
 	quit        chan struct{}
 	connections []*Connection
 	connLock    sync.Mutex
+	gameService game.GameGateway
 }
 
 func NewAhorcadoServer() *AhorcadoServer {
 	srv := &AhorcadoServer{
-		broadcast: make(chan *generated.Word),
-		quit:      make(chan struct{}),
+		broadcast:   make(chan *generated.Word),
+		quit:        make(chan struct{}),
+		gameService: game.NewGameGateway(),
 	}
 
 	go srv.start()
@@ -97,18 +100,17 @@ func (c *AhorcadoServer) Close() error {
 
 func (c *AhorcadoServer) start() {
 	running := true
-	gameService := game.NewGameGateway()
 	for running {
 		select {
 		case msg := <-c.broadcast:
 			c.connLock.Lock()
 
-			game, err := gameService.GetGame(msg)
+			/* GetGame Service*/
+			game, err := c.gameService.GetGame(msg)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			log.Println("Ya vemos que hacemos con el msj ", msg)
 			for _, v := range c.connections {
 				go v.Send(&game)
 			}
@@ -137,4 +139,12 @@ func (c *AhorcadoServer) Ahorcado(stream generated.Ahorcado_AhorcadoServer) erro
 	c.connLock.Unlock()
 
 	return err
+}
+
+func (c *AhorcadoServer) GetRandomGame(context context.Context, req *generated.Empty) (*generated.Game, error) {
+	game, err := c.gameService.GetRandomGame()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return &game, nil
 }

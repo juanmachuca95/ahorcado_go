@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"io"
 	"log"
 	"strings"
 
@@ -40,79 +38,62 @@ func main() {
 
 	/* Ahorcado Client gRPC Go */
 	client := generated.NewAhorcadoClient(conn)
-	stream, err := client.Ahorcado(context.Background())
+	game, err := client.GetRandomGame(context.Background(), &generated.Empty{})
+
+	if game.Error != "" {
+		log.Println("🔥 - ", game.Error)
+	}
+
+	/* stream, err := client.Ahorcado(context.Background())
 	if err != nil {
 		log.Fatal(err)
-	}
+	} */
 
-	waitc := make(chan struct{})
-	go func() {
-		for {
-			in, err := stream.Recv()
-			if err == io.EOF {
-				close(waitc)
-				return
+	/*
+		waitc := make(chan struct{})
+		go func() {
+			for {
+				in, err := stream.Recv()
+				if err == io.EOF {
+					close(waitc)
+					return
+				}
+				if err != nil {
+					log.Fatalf("Failed to receive a note : %v", err)
+				}
+
+				log.Println("***************************************")
+				log.Println("Encontrados", in.Encontrados)
+				log.Println("***************************************")
+
+				if in.Finalizada {
+					log.Println("🏆 HA GANADO EL USUARIO: ", in.Winner, " - AL DESCUBRIR LA PALABRA: ", in.Word)
+				}
 			}
-			if err != nil {
-				log.Fatalf("Failed to receive a note : %v", err)
+		}()
+
+		log.Println("Death By Hanging - Juan Gabriel Machuca")
+
+		clave := "Developer"
+		clave = strings.ToTitle(clave)
+
+		var input string
+		var finded bool = false
+		var failed bool = false
+
+		for !finded && !failed {
+			fmt.Scan(&input)
+			input = strings.ToTitle(input)
+
+			req := &generated.Word{Word: input, User: user}
+			if err := stream.Send(req); err != nil {
+				log.Fatalf("Failed to send a note: %v", err)
 			}
-			log.Printf("Game: %s) - %v\n", in.Word, in)
-		}
-	}()
 
-	log.Println("Death By Hanging - Juan Gabriel Machuca")
-
-	var tries int = 6
-	clave := "Developer"
-	clave = strings.ToTitle(clave)
-
-	var input string
-	var finded bool = false
-	var failed bool = false
-
-	for !finded && !failed {
-		fmt.Scan(&input)
-		input = strings.ToTitle(input)
-
-		req := &generated.Word{Word: input, User: user}
-		if err := stream.Send(req); err != nil {
-			log.Fatalf("Failed to send a note: %v", err)
 		}
 
-		/* if clave == input {
-			log.Println("Arriesgaste", input, " HAS GANADO 🏆 - coincidencias: TOTAL - palabra: ", clave)
-			finded = true
-		} else if len(input) > 1 {
-			tries--
-			frames.Frames(tries)
-			log.Println("Encontrados hasta el momento: ", encontrados)
-			log.Println("Arriesgaste", input, "HAS FALLADO 👎 - coincidencias: 0 - Intentos: ", tries)
-		} else if alreadyFound(input) {
-			log.Println("El caracter", input, "YA HA SIDO ENCONTRADO - coincidencias: ", strings.Count(clave, input))
-		} else if strings.Contains(clave, input) {
-			log.Println("El caracter", input, " SI esta 👍 - coincidencias: ", strings.Count(clave, input))
-			encontrados = append(encontrados, input)
-			log.Println("Encontrados: ", encontrados)
-			if win(clave) {
-				finded = true
-				log.Println("🏆 Has ganado el juego ", encontrados)
-			}
-		} else {
-			tries--
-			frames.Frames(tries)
-			log.Println("Encontrados hasta el momento: ", encontrados)
-			log.Println("El caracter", input, " (NO) esta 👎 - coincidencias: ", strings.Count(clave, input), " - Intentos: ", tries)
-		} */
-
-		if tries == 0 {
-			failed = true
-
-			log.Println("Lo siento has perdido. ")
-		}
-	}
-
-	stream.CloseSend()
-	<-waitc
+		stream.CloseSend()
+		<-waitc */
 
 }
 
@@ -145,3 +126,35 @@ func alreadyFound(character string) bool {
 	}
 	return result
 }
+
+/* if clave == input {
+	log.Println("Arriesgaste", input, " HAS GANADO 🏆 - coincidencias: TOTAL - palabra: ", clave)
+	finded = true
+} else if len(input) > 1 {
+	tries--
+	frames.Frames(tries)
+	log.Println("Encontrados hasta el momento: ", encontrados)
+	log.Println("Arriesgaste", input, "HAS FALLADO 👎 - coincidencias: 0 - Intentos: ", tries)
+} else if alreadyFound(input) {
+	log.Println("El caracter", input, "YA HA SIDO ENCONTRADO - coincidencias: ", strings.Count(clave, input))
+} else if strings.Contains(clave, input) {
+	log.Println("El caracter", input, " SI esta 👍 - coincidencias: ", strings.Count(clave, input))
+	encontrados = append(encontrados, input)
+	log.Println("Encontrados: ", encontrados)
+	if win(clave) {
+		finded = true
+		log.Println("🏆 Has ganado el juego ", encontrados)
+	}
+} else {
+	tries--
+	frames.Frames(tries)
+	log.Println("Encontrados hasta el momento: ", encontrados)
+	log.Println("El caracter", input, " (NO) esta 👎 - coincidencias: ", strings.Count(clave, input), " - Intentos: ", tries)
+}
+
+if tries == 0 {
+	failed = true
+
+	log.Println("Lo siento has perdido. ")
+}
+*/
