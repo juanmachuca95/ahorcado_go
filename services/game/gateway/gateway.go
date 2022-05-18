@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 type GameGateway interface {
 	GetRandomGame() (generated.Game, error)
 	CreateGame() (models.Game, error)
-	GetGame(*generated.Word) (generated.Game, error)
+	MyGame(*generated.Word) (generated.Game, error)
 }
 
 type GameService struct {
@@ -56,7 +57,10 @@ func (s *GameService) CreateGame() (models.Game, error) {
 }
 
 func (s *GameService) GetRandomGame() (generated.Game, error) {
-	pipeline := []bson.D{bson.D{{"$sample", bson.D{{"size", 10}}}}}
+	pipeline := []bson.D{
+		{{"$match", bson.D{{"finalizada", false}}}},
+		{{"$sample", bson.D{{"size", 1}}}},
+	}
 	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return generated.Game{
@@ -78,7 +82,7 @@ func (s *GameService) GetRandomGame() (generated.Game, error) {
 	}
 
 	return generated.Game{
-		Id:          game.Id.String(),
+		Id:          game.Id.Hex(),
 		Word:        game.Word,
 		Winner:      game.Winner,
 		Encontrados: game.Encontrados,
@@ -87,150 +91,201 @@ func (s *GameService) GetRandomGame() (generated.Game, error) {
 	}, nil
 }
 
-func (s *GameService) GetGame(word *generated.Word) (generated.Game, error) {
-	collection := s.Client.Database("ahorcado").Collection("game")
-	var game models.Game
+func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
+	game, _ := s.GetGame(word.GameId)
 
-	if word.GameId == "" {
-		word.GameId = "62811ff88d918fb8157de332"
-	}
-
-	objID, _ := primitive.ObjectIDFromHex(word.GameId)
-	err := collection.FindOne(context.TODO(), bson.D{{"_id", objID}}).Decode(&game)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			// This error means your query did not match any documents.
-			return generated.Game{
-				Error: "Game no encontrado",
-			}, nil
-		}
-		panic(err)
-	}
-
-	log.Println("JUGANDO CON LA PALABRA: ", game.Word)
+	/* Juego terminado */
+	var response generated.Game
 
 	if game.Finalizada == true {
-		return generated.Game{
+		log.Println("1. Finalizada")
+		response = generated.Game{
+			Id:          game.Id.Hex(),
 			Word:        game.Word,
-			Encontrados: game.Encontrados,
 			Winner:      game.Winner,
+			Encontrados: game.Encontrados,
 			Finalizada:  game.Finalizada,
-			Error:       "",
-		}, nil
+			Error:       "Este juego ha sido finalizado",
+		}
+		log.Println(response)
+		return response, nil
 	}
 
-	log.Println("Comparar ", game.Word, " con ", word.Word)
+	/* El usuario ingresa una palabra y la palabra coincide */
 	if game.Word == word.Word {
-		log.Println("COINCIDENCIA TOTAL!")
-		ok, err := s.UpdateWinner(word, game.Id)
+		log.Println("2. Ha encontrado la palabra.")
+		game.Encontrados = append(game.Encontrados, game.Word)
+
+		ok, err := s.UpdateWinner(word, game)
 		if !ok {
-			return generated.Game{
-				Error: err.Error(),
-			}, err
+			response = generated.Game{
+				Word:        game.Word,
+				Encontrados: game.Encontrados,
+				Finalizada:  game.Finalizada,
+				Error:       err.Error(),
+			}
+			log.Println(response)
+			return response, err
 		}
 
-		game.Encontrados = append(game.Encontrados, game.Word)
-		return generated.Game{
+		response = generated.Game{
+			Id:          game.Id.Hex(),
 			Word:        game.Word,
 			Winner:      word.User,
 			Encontrados: game.Encontrados,
 			Finalizada:  true,
-		}, nil
+		}
+
+		log.Println(response)
+		return response, nil
 	}
 
+	/* letra ya encontrada */
 	if AlreadyFound(word.Word, game.Encontrados) {
+		log.Println("3. Ya ha sido encontrada la letra")
+		messageError := fmt.Sprintf("La letra %v ya figura en la lista de encontrados", word.Word)
 		return generated.Game{
-			Error: fmt.Sprintf("La letra %v ya figura en la lista de encontrados", word.Word),
+			Id:          game.Id.Hex(),
+			Word:        game.Word,
+			Winner:      game.Winner,
+			Encontrados: game.Encontrados,
+			Finalizada:  game.Finalizada,
+			Error:       messageError,
 		}, nil
 	}
 
+	/* La letra ingresada por el usuario coincide con una letra en la palabra del juego */
 	if strings.Contains(game.Word, word.Word) {
-		log.Println("ESTA CONTENIDA")
+		log.Println("4. La palabra ingresada coincide con una letra de la palabra del juego")
 		game.Encontrados = append(game.Encontrados, word.Word)
-
-		log.Println("Encontrados hasta ahora: ", game.Encontrados)
 		if Win(game.Word, game.Encontrados) { // si es la última letra para encontrar
-			ok, err := s.UpdateWinner(word, game.Id)
+			ok, err := s.UpdateWinner(word, game)
 			if !ok {
-				return generated.Game{
-					Error: fmt.Sprintf("No fue posible actualizar el Game - error: %v", err.Error()),
-				}, err
+				messageError := fmt.Sprintf("No fue posible actualizar el Game - error: %v", err.Error())
+				response = generated.Game{
+					Id:          game.Id.Hex(),
+					Word:        game.Word,
+					Winner:      game.Winner,
+					Encontrados: game.Encontrados,
+					Finalizada:  game.Finalizada,
+					Error:       messageError,
+				}
+
+				log.Println(response)
+				return response, err
 			}
 
-			game.Encontrados = append(game.Encontrados, game.Word)
-			return generated.Game{
-				Id:          game.Id.String(),
+			response = generated.Game{
+				Id:          game.Id.Hex(),
 				Word:        game.Word,
 				Winner:      word.User,
 				Encontrados: game.Encontrados,
-				Finalizada:  true,
-			}, nil
-		} else {
-			_, err := s.UpdateEncontrados(game.Encontrados, game.Id)
+				Finalizada:  game.Finalizada,
+				Error:       "",
+			}
+
+			log.Println(response)
+			return response, nil
+
+		} else { // si no es la última letra del juego actualizamos los encontrados
+			log.Println("5. Actualización de letra encontrada")
+			_, err := s.UpdateEncontrados(game.Encontrados, game.Id.Hex())
 			if err != nil {
 				log.Fatal("No fue posible actualizar las letras encontradas - error: ", err)
 			}
 
-			return generated.Game{
-				Id:          game.Id.String(),
+			response = generated.Game{
+				Id:          game.Id.Hex(),
 				Word:        game.Word,
-				Winner:      "",
+				Winner:      game.Winner,
 				Encontrados: game.Encontrados,
+				Finalizada:  game.Finalizada,
 				Error:       "",
-			}, nil
+			}
+			return response, nil
 		}
 	}
 
-	return generated.Game{
-		Id:          game.Id.String(),
+	response = generated.Game{
+		Id:          game.Id.Hex(),
 		Word:        game.Word,
-		Winner:      "",
+		Winner:      game.Winner,
 		Encontrados: game.Encontrados,
-		Error:       fmt.Sprintf("La letra-palabra %s no es valida", word.Word),
-	}, nil
+		Error:       fmt.Sprintf("La letra o palabra ingresas %s no existe.", word.Word),
+	}
+	return response, nil
 }
 
-func (s GameService) UpdateEncontrados(encontrados []string, gameId primitive.ObjectID) (bool, error) {
+func (s GameService) UpdateEncontrados(encontrados []string, gameId string) (bool, error) {
 	collection := s.Client.Database("ahorcado").Collection("game")
-	id, _ := primitive.ObjectIDFromHex(gameId.Hex())
-
-	game := models.Game{
-		Encontrados: encontrados,
+	objID, err := primitive.ObjectIDFromHex(gameId)
+	if err != nil {
+		fmt.Println("ObjectIDFromHex ERROR", err)
+	} else {
+		fmt.Println("ObjectIDFromHex:", objID)
 	}
 
-	result, err := collection.UpdateOne(
+	filter := bson.M{"_id": bson.M{"$eq": objID}}
+	update := bson.M{"$set": bson.M{"encontrados": encontrados}}
+	_, err = collection.UpdateOne(
 		context.Background(),
-		bson.M{"_id": id},
-		bson.D{{"$set", game}})
+		filter,
+		update,
+	)
+
+	// Check for error, else print the UpdateOne() API call results
+	if err != nil {
+		fmt.Println("UpdateOne() result ERROR:", err)
+		os.Exit(1)
+	}
+
+	log.Printf("Actualización de letras encontradas en el juego id - %s\n", gameId)
+	return true, err
+}
+
+func (s GameService) UpdateWinner(word *generated.Word, game models.Game) (bool, error) {
+	collection := s.Client.Database("ahorcado").Collection("game")
+	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())
+	if err != nil {
+		fmt.Println("ObjectIDFromHex ERROR", err)
+	} else {
+		fmt.Println("ObjectIDFromHex:", objID)
+	}
+
+	filter := bson.M{"_id": bson.M{"$eq": objID}}
+	update := bson.M{"$set": bson.M{"encontrados": game.Encontrados, "finalizada": true, "winner": word.User}}
+	_, err = collection.UpdateOne(
+		context.Background(),
+		filter,
+		update,
+	)
+
+	_, err = collection.UpdateOne(
+		context.Background(),
+		filter,
+		update)
 	if err != nil {
 		return false, err
 	}
 
-	fmt.Printf("Updated %v Document - Encontrados\n", result.ModifiedCount)
+	fmt.Printf("Se ha actualizado el gamador del juego - id %s\n", game.Id.Hex())
 	return true, err
-
 }
 
-func (s GameService) UpdateWinner(word *generated.Word, gameId primitive.ObjectID) (bool, error) {
+func (s GameService) GetGame(gameId string) (models.Game, error) {
 	collection := s.Client.Database("ahorcado").Collection("game")
-	id, _ := primitive.ObjectIDFromHex(gameId.Hex())
 
-	game := models.Game{
-		Word:       word.Word,
-		Winner:     word.User,
-		Finalizada: true,
-	}
-
-	result, err := collection.UpdateOne(
-		context.Background(),
-		bson.M{"_id": id},
-		bson.D{{"$set", game}})
+	objID, _ := primitive.ObjectIDFromHex(gameId)
+	var game models.Game
+	err := collection.FindOne(context.TODO(), bson.D{{"_id", objID}}).Decode(&game)
 	if err != nil {
-		return false, err
+		if err == mongo.ErrNoDocuments {
+			return game, err
+		}
+		panic(err)
 	}
 
-	fmt.Printf("Updated %v Documents!\n", result.ModifiedCount)
-	return true, err
+	return game, nil
 }
 
 func Win(clave string, encontrados []string) bool {

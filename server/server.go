@@ -13,7 +13,6 @@ import (
 type Connection struct {
 	conn generated.Ahorcado_AhorcadoServer
 	send chan *generated.Game
-	recv chan *generated.Word
 	quit chan struct{}
 }
 
@@ -21,7 +20,6 @@ func NewConnection(conn generated.Ahorcado_AhorcadoServer) *Connection {
 	c := &Connection{
 		conn: conn,
 		send: make(chan *generated.Game),
-		recv: make(chan *generated.Word),
 		quit: make(chan struct{}),
 	}
 	go c.start()
@@ -47,7 +45,7 @@ func (c *Connection) start() {
 	for running {
 		select {
 		case msg := <-c.send:
-			c.conn.Send(&generated.Game{Word: msg.String()}) // Ignoring the error, they just don't get this message.
+			c.conn.Send(msg) // Ignoring the error, they just don't get this message.
 		case <-c.quit:
 			running = false
 		}
@@ -106,7 +104,7 @@ func (c *AhorcadoServer) start() {
 			c.connLock.Lock()
 
 			/* GetGame Service*/
-			game, err := c.gameService.GetGame(msg)
+			game, err := c.gameService.MyGame(msg)
 			if err != nil {
 				log.Fatal(err)
 			}

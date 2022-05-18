@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"io"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/juanmachuca95/ahorcado_go/generated"
 	"github.com/juanmachuca95/ahorcado_go/services/game/models"
@@ -34,88 +37,113 @@ func main() {
 	}
 	defer conn.Close()
 
-	/* Titúlo */
-	log.Println("Death By Hanging - Go 👍")
-
 	/* Ahorcado Client gRPC Go */
 	client := generated.NewAhorcadoClient(conn)
-	game, err := client.GetRandomGame(context.Background(), &generated.Empty{})
 
-	if game.Error != "" {
-		log.Println("🔥 - ", game.Error)
-		return
-	}
+	Header()
+	Panel()
+	var leaveGame bool = false
+	var myInput string
+	var inGame generated.Game
+	var activateStream bool = false
+	var mux sync.Mutex
+	pterm.Print("\n")
+	waitc := make(chan struct{})
+	for !leaveGame {
 
-	// Color
-	// primary  "255, 215, 0"
-	header := pterm.DefaultHeader.WithBackgroundStyle(pterm.DefaultHeader.BackgroundStyle)
-	pterm.DefaultCenter.Println(header.Sprintf("Made by @juanmachuca95"))
-
-	pterm.DefaultBigText.WithLetters(
-		pterm.NewLettersFromStringWithRGB("Ahorcado", pterm.NewRGB(255, 215, 0))).
-		Render()
-		// Declare panels in a two dimensional grid system.
-	panels := pterm.Panels{
-		{{Data: "[+] Empezar juego"}, {Data: "\n Ingresa 1 para comenzar a juagar\n"}},
-		{{Data: "[*] Ranking Podio"}, {Data: "\n Ingresa 2 para ver el Ranking actual del juego y tu número de posición\n"}},
-	}
-
-	// Print panels.
-	_ = pterm.DefaultPanel.WithPanels(panels).Render()
-	pterm.NewRGB(255, 215, 0).Println("GAME ID: ", game.Id, " - WORD: ", game.Word)
-	log.Println("*******************************")
-
-	/* stream, err := client.Ahorcado(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	} */
-
-	/*
-		waitc := make(chan struct{})
-		go func() {
-			for {
-				in, err := stream.Recv()
-				if err == io.EOF {
-					close(waitc)
-					return
-				}
-				if err != nil {
-					log.Fatalf("Failed to receive a note : %v", err)
-				}
-
-				log.Println("***************************************")
-				log.Println("Encontrados", in.Encontrados)
-				log.Println("***************************************")
-
-				if in.Finalizada {
-					log.Println("🏆 HA GANADO EL USUARIO: ", in.Winner, " - AL DESCUBRIR LA PALABRA: ", in.Word)
-				}
-			}
-		}()
-
-		log.Println("Death By Hanging - Juan Gabriel Machuca")
-
-		clave := "Developer"
-		clave = strings.ToTitle(clave)
-
-		var input string
-		var finded bool = false
-		var failed bool = false
-
-		for !finded && !failed {
-			fmt.Scan(&input)
-			input = strings.ToTitle(input)
-
-			req := &generated.Word{Word: input, User: user}
-			if err := stream.Send(req); err != nil {
-				log.Fatalf("Failed to send a note: %v", err)
+		if activateStream {
+			stream, err := client.Ahorcado(context.Background())
+			if err != nil {
+				pterm.Warning.Println("Fallo al activar stream del juego - error: ", err.Error())
+				activateStream = false
+				leaveGame = true
+				return
 			}
 
+			go func() {
+				for {
+					in, err := stream.Recv()
+					if err == io.EOF {
+						close(waitc)
+						return
+					}
+					if err != nil {
+						log.Fatalf("Failed to receive a note : %v", err)
+					}
+
+					mux.Lock()
+					inGame.Id = in.Id
+					inGame.Word = in.Word
+					inGame.Winner = in.Winner
+					inGame.Encontrados = in.Encontrados
+					inGame.Finalizada = in.Finalizada
+					inGame.Error = in.Error
+
+					if in.Finalizada {
+						log.Println("🏆 HA GANADO EL USUARIO: ", in.Winner, " - AL DESCUBRIR LA PALABRA: ", in.Word)
+						leaveGame = true
+						activateStream = false
+					}
+
+					pterm.Println()
+					pterm.DefaultSection.Println("Encontrados: ", in.Encontrados)
+					pterm.Info.Println("En juego\nGanador: ", in.Winner)
+					pterm.Println()
+					mux.Unlock()
+				}
+			}()
+
+			var input string
+			var finded bool = false
+			var failed bool = false
+			for !finded && !failed {
+				fmt.Scan(&input)
+				input = strings.ToTitle(input)
+
+				req := &generated.Word{
+					GameId: inGame.Id,
+					Word:   input,
+					User:   user,
+				}
+				if err := stream.Send(req); err != nil {
+					log.Fatalf("Failed to send a note: %v", err)
+				}
+
+			}
+
+			stream.CloseSend()
+			<-waitc
 		}
 
-		stream.CloseSend()
-		<-waitc */
+		/* Entradas del usuario*/
+		fmt.Scan(&myInput)
+		switch myInput {
+		case "1":
+			game, err := GetRandomGame(client)
+			if err != nil {
+				pterm.Warning.Println("No fue posible obtener un juego activo.")
+				leaveGame = true
+				return
+			}
 
+			inGame.Id = game.Id
+			inGame.Word = game.Word
+			inGame.Encontrados = game.Encontrados
+			inGame.Finalizada = game.Finalizada
+			activateStream = true
+
+			pterm.Println()
+			pterm.FgBlue.Println("ID DEL JUEGO ES: ", inGame.Id)
+			pterm.FgYellow.Println("Letras encontradas: ", inGame.GetEncontrados(), " PALABRA: ", inGame.GetWord())
+			pterm.FgGreen.Println("Juego: ACTIVO - Stream: ", activateStream, " Finalizado: ", inGame.GetFinalizada())
+		case "2":
+			GetRanking(client)
+		default:
+			Panel()
+		}
+	}
+
+	// Declare panels in a two dimensional grid system.
 }
 
 func getGame() models.Game {
@@ -179,3 +207,36 @@ if tries == 0 {
 	log.Println("Lo siento has perdido. ")
 }
 */
+
+func Header() {
+	// Color: primary  "255, 215, 0"
+	header := pterm.DefaultHeader.WithBackgroundStyle(pterm.DefaultHeader.BackgroundStyle)
+	pterm.DefaultCenter.Println(header.Sprintf("Made by @juanmachuca95"))
+
+	pterm.DefaultBigText.WithLetters(
+		pterm.NewLettersFromStringWithRGB("Ahorcado", pterm.NewRGB(255, 215, 0))).
+		Render()
+}
+
+func Panel() {
+	panels := pterm.Panels{
+		{{Data: "[+] Unirse al juego"}, {Data: "\n Ingresa 1 para comenzar a juagar\n"}},
+		{{Data: "[*] Ranking Podio"}, {Data: "\n Ingresa 2 para ver el Ranking actual del juego y tu número de posición\n"}},
+	}
+
+	_ = pterm.DefaultPanel.WithPanels(panels).Render()
+}
+
+func GetRandomGame(client generated.AhorcadoClient) (*generated.Game, error) {
+	game, err := client.GetRandomGame(context.Background(), &generated.Empty{})
+	if err != nil {
+		log.Fatal(err.Error())
+		return game, err
+	}
+
+	return game, nil
+}
+
+func GetRanking(client generated.AhorcadoClient) {
+	log.Println("Función no programada")
+}
