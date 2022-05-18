@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"strings"
-	"sync"
 
 	"github.com/juanmachuca95/ahorcado_go/generated"
 	"github.com/juanmachuca95/ahorcado_go/services/game/models"
@@ -46,7 +45,6 @@ func main() {
 	var myInput string
 	var inGame generated.Game
 	var activateStream bool = false
-	var mux sync.Mutex
 	pterm.Print("\n")
 	waitc := make(chan struct{})
 	for !leaveGame {
@@ -71,7 +69,6 @@ func main() {
 						log.Fatalf("Failed to receive a note : %v", err)
 					}
 
-					mux.Lock()
 					inGame.Id = in.Id
 					inGame.Word = in.Word
 					inGame.Winner = in.Winner
@@ -79,36 +76,42 @@ func main() {
 					inGame.Finalizada = in.Finalizada
 					inGame.Error = in.Error
 
-					if in.Finalizada {
-						log.Println("🏆 HA GANADO EL USUARIO: ", in.Winner, " - AL DESCUBRIR LA PALABRA: ", in.Word)
+					if inGame.Finalizada {
+						pterm.Println("***********************************************")
+						pterm.Success.Println("🏆 HA GANADO EL USUARIO: ", in.Winner, " - AL DESCUBRIR LA PALABRA: ", in.Word)
+						pterm.Println("***********************************************")
 						leaveGame = true
 						activateStream = false
+						Panel()
+						return
+					} else {
+						pterm.Println()
+						pterm.DefaultSection.Println("Encontrados: ", inGame.Encontrados)
+						pterm.Info.Println("En juego\nFinalizada: ", inGame.Finalizada, " \nError: ", inGame.Error)
+						pterm.Println()
 					}
 
-					pterm.Println()
-					pterm.DefaultSection.Println("Encontrados: ", in.Encontrados)
-					pterm.Info.Println("En juego\nGanador: ", in.Winner)
-					pterm.Println()
-					mux.Unlock()
 				}
 			}()
 
 			var input string
 			var finded bool = false
 			var failed bool = false
-			for !finded && !failed {
-				fmt.Scan(&input)
-				input = strings.ToTitle(input)
 
-				req := &generated.Word{
-					GameId: inGame.Id,
-					Word:   input,
-					User:   user,
-				}
-				if err := stream.Send(req); err != nil {
-					log.Fatalf("Failed to send a note: %v", err)
-				}
+			if activateStream {
+				for !finded && !failed {
+					fmt.Scan(&input)
+					input = strings.ToTitle(input)
 
+					req := &generated.Word{
+						GameId: inGame.Id,
+						Word:   input,
+						User:   user,
+					}
+					if err := stream.Send(req); err != nil {
+						log.Fatalf("Failed to send a note: %v", err)
+					}
+				}
 			}
 
 			stream.CloseSend()
@@ -130,7 +133,15 @@ func main() {
 			inGame.Word = game.Word
 			inGame.Encontrados = game.Encontrados
 			inGame.Finalizada = game.Finalizada
+			inGame.Error = game.Error
 			activateStream = true
+
+			if inGame.Error != "" {
+				pterm.Println()
+				pterm.Warning.Println("No hay juegos disponibles")
+				pterm.Println()
+				return
+			}
 
 			pterm.Println()
 			pterm.FgBlue.Println("ID DEL JUEGO ES: ", inGame.Id)
@@ -176,38 +187,6 @@ func alreadyFound(character string) bool {
 	return result
 }
 
-/* if clave == input {
-	log.Println("Arriesgaste", input, " HAS GANADO 🏆 - coincidencias: TOTAL - palabra: ", clave)
-	finded = true
-} else if len(input) > 1 {
-	tries--
-	frames.Frames(tries)
-	log.Println("Encontrados hasta el momento: ", encontrados)
-	log.Println("Arriesgaste", input, "HAS FALLADO 👎 - coincidencias: 0 - Intentos: ", tries)
-} else if alreadyFound(input) {
-	log.Println("El caracter", input, "YA HA SIDO ENCONTRADO - coincidencias: ", strings.Count(clave, input))
-} else if strings.Contains(clave, input) {
-	log.Println("El caracter", input, " SI esta 👍 - coincidencias: ", strings.Count(clave, input))
-	encontrados = append(encontrados, input)
-	log.Println("Encontrados: ", encontrados)
-	if win(clave) {
-		finded = true
-		log.Println("🏆 Has ganado el juego ", encontrados)
-	}
-} else {
-	tries--
-	frames.Frames(tries)
-	log.Println("Encontrados hasta el momento: ", encontrados)
-	log.Println("El caracter", input, " (NO) esta 👎 - coincidencias: ", strings.Count(clave, input), " - Intentos: ", tries)
-}
-
-if tries == 0 {
-	failed = true
-
-	log.Println("Lo siento has perdido. ")
-}
-*/
-
 func Header() {
 	// Color: primary  "255, 215, 0"
 	header := pterm.DefaultHeader.WithBackgroundStyle(pterm.DefaultHeader.BackgroundStyle)
@@ -220,8 +199,9 @@ func Header() {
 
 func Panel() {
 	panels := pterm.Panels{
-		{{Data: "[+] Unirse al juego"}, {Data: "\n Ingresa 1 para comenzar a juagar\n"}},
-		{{Data: "[*] Ranking Podio"}, {Data: "\n Ingresa 2 para ver el Ranking actual del juego y tu número de posición\n"}},
+		{{Data: "Opciones del juego"}},
+		{{Data: "[1] Unirse al Game"}, {Data: "\n Ingresa tu nombre de usuario\n Posteriormente se inicia el juego\n Comienza"}},
+		{{Data: "[2] Ranking Podio"}, {Data: "\n Ingresa 2 para ver el Ranking actual del juego y tu número de posición\n"}},
 	}
 
 	_ = pterm.DefaultPanel.WithPanels(panels).Render()

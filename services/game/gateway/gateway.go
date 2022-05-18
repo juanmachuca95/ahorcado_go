@@ -81,13 +81,19 @@ func (s *GameService) GetRandomGame() (generated.Game, error) {
 		}
 	}
 
+	if game.Word != "" {
+		return generated.Game{
+			Id:          game.Id.Hex(),
+			Word:        game.Word,
+			Winner:      game.Winner,
+			Encontrados: game.Encontrados,
+			Finalizada:  game.Finalizada,
+			Error:       "",
+		}, nil
+	}
+
 	return generated.Game{
-		Id:          game.Id.Hex(),
-		Word:        game.Word,
-		Winner:      game.Winner,
-		Encontrados: game.Encontrados,
-		Finalizada:  game.Finalizada,
-		Error:       "",
+		Error: "No hay juegos dispnibles",
 	}, nil
 }
 
@@ -95,19 +101,19 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 	game, _ := s.GetGame(word.GameId)
 
 	/* Juego terminado */
-	var response generated.Game
+	response := generated.Game{}
 
 	if game.Finalizada == true {
 		log.Println("1. Finalizada")
+		errorMessage := fmt.Sprint("Este juego ha sido finalizado")
 		response = generated.Game{
 			Id:          game.Id.Hex(),
 			Word:        game.Word,
 			Winner:      game.Winner,
 			Encontrados: game.Encontrados,
 			Finalizada:  game.Finalizada,
-			Error:       "Este juego ha sido finalizado",
+			Error:       errorMessage,
 		}
-		log.Println(response)
 		return response, nil
 	}
 
@@ -119,12 +125,13 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 		ok, err := s.UpdateWinner(word, game)
 		if !ok {
 			response = generated.Game{
+				Id:          game.Id.Hex(),
 				Word:        game.Word,
+				Winner:      game.Winner,
 				Encontrados: game.Encontrados,
 				Finalizada:  game.Finalizada,
 				Error:       err.Error(),
 			}
-			log.Println(response)
 			return response, err
 		}
 
@@ -134,9 +141,8 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 			Winner:      word.User,
 			Encontrados: game.Encontrados,
 			Finalizada:  true,
+			Error:       "",
 		}
-
-		log.Println(response)
 		return response, nil
 	}
 
@@ -170,8 +176,6 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 					Finalizada:  game.Finalizada,
 					Error:       messageError,
 				}
-
-				log.Println(response)
 				return response, err
 			}
 
@@ -180,13 +184,10 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 				Word:        game.Word,
 				Winner:      word.User,
 				Encontrados: game.Encontrados,
-				Finalizada:  game.Finalizada,
+				Finalizada:  true,
 				Error:       "",
 			}
-
-			log.Println(response)
 			return response, nil
-
 		} else { // si no es la última letra del juego actualizamos los encontrados
 			log.Println("5. Actualización de letra encontrada")
 			_, err := s.UpdateEncontrados(game.Encontrados, game.Id.Hex())
