@@ -15,6 +15,8 @@ message Game {
     repeated string encontrados = 4;
     bool finalizada = 5;
     string error = 6;
+    string user_send = 7;
+    string word_send = 8;
 }
 
 message Empty {}

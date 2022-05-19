@@ -212,7 +212,7 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 		Word:        game.Word,
 		Winner:      game.Winner,
 		Encontrados: game.Encontrados,
-		Error:       fmt.Sprintf("La letra o palabra ingresas %s no existe.", word.Word),
+		Error:       fmt.Sprintf("La letra o palabra ingresada (%s) no existe, -1 intentos.", word.Word),
 	}
 	return response, nil
 }
@@ -289,6 +289,7 @@ func (s GameService) GetGame(gameId string) (models.Game, error) {
 	return game, nil
 }
 
+/* Funciones auxiliares - Win en las letra */
 func Win(clave string, encontrados []string) bool {
 	var fin bool = false
 	var lengthClave int = len(clave)
@@ -307,6 +308,7 @@ func Win(clave string, encontrados []string) bool {
 	return fin
 }
 
+/* Funciones auxiliares - Letra previamente encontrada */
 func AlreadyFound(character string, encontrados []string) bool {
 	var result bool = false
 	for _, encontrado := range encontrados {

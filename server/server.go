@@ -109,6 +109,9 @@ func (c *AhorcadoServer) start() {
 				log.Fatal(err)
 			}
 
+			/* Usuario que lo envia*/
+			game.UserSend = msg.User
+			game.WordSend = msg.Word
 			for _, v := range c.connections {
 				go v.Send(&game)
 			}
