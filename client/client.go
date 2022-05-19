@@ -30,6 +30,8 @@ var ctx = context.TODO()
 var user string = "default"
 
 func main() {
+	flag.Parse()
+
 	conn, err := grpc.Dial(*serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
@@ -223,8 +225,15 @@ func ShowInfo(inGame *generated.Game, tries int) {
 		}
 	}
 
+	var status string
+	if inGame.Error != "" {
+		status = inGame.Error
+	} else {
+		status = fmt.Sprintf("La letra (%s) Ha sido encontrada 👍", inGame.WordSend)
+	}
+
 	pterm.DefaultSection.Println("Palabra: ", results)
-	pterm.Info.Println("El usuario", inGame.UserSend, " ha jugado: ", inGame.WordSend, "\nLetras encontradas: ", inGame.Encontrados, " \nIntentos: ", tries, "\nEstatus: ", inGame.Error)
+	pterm.Info.Println("El usuario", inGame.UserSend, " ha jugado: ", inGame.WordSend, "\nLetras encontradas: ", inGame.Encontrados, " \nIntentos: ", tries, "\nEstatus: ", status)
 	pterm.Println()
 }
 

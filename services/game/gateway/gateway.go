@@ -149,7 +149,7 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 	/* letra ya encontrada */
 	if AlreadyFound(word.Word, game.Encontrados) {
 		log.Println("3. Ya ha sido encontrada la letra")
-		messageError := fmt.Sprintf("La letra %v ya figura en la lista de encontrados", word.Word)
+		messageError := fmt.Sprintf("La letra %v ya figura en la lista de encontrados 👎", word.Word)
 		return generated.Game{
 			Id:          game.Id.Hex(),
 			Word:        game.Word,
@@ -212,7 +212,7 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 		Word:        game.Word,
 		Winner:      game.Winner,
 		Encontrados: game.Encontrados,
-		Error:       fmt.Sprintf("La letra o palabra ingresada (%s) no existe, -1 intentos.", word.Word),
+		Error:       fmt.Sprintf("La letra o palabra ingresada (%s) no existe 👎, -1 intentos.", word.Word),
 	}
 	return response, nil
 }
