@@ -1,8 +1,12 @@
 # DeathByHanging (Ahorcado) Golang
 
-Esta primera implementación de Death By Hanging (Ahorcado) esta diseñada para una sola palabra por el momento.
+Esta es mi implementación del juego del ahorcado en Golang.
+
 
 
 #### Conectando al juego
 
 go run client/client.go -addr=xxxxxxxxx:8080
+
+
+
