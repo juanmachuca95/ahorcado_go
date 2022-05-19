@@ -56,6 +56,8 @@ func main() {
 
 	for !leaveGame {
 		if activateStream {
+			pterm.DefaultSection.Println("Palabra: ", ShowWord(inGame.Word, inGame.Encontrados))
+
 			waitc := make(chan struct{})
 			stream, err := client.Ahorcado(context.Background())
 			if err != nil {
@@ -206,24 +208,6 @@ func GameWin(inGame *generated.Game, myUser string) {
 
 func ShowInfo(inGame *generated.Game, tries int) {
 	pterm.Println()
-	chars := []rune(inGame.Word)
-	var wordPositions []string
-
-	var encontrados []string = inGame.Encontrados
-	var results []string
-	for i := 0; i < len(chars); i++ {
-		char := string(chars[i])
-		results = append(results, "_")
-		wordPositions = append(wordPositions, char)
-	}
-
-	for _, encontrado := range encontrados {
-		for i, worPos := range wordPositions {
-			if encontrado == worPos {
-				results[i] = worPos
-			}
-		}
-	}
 
 	var status string
 	if inGame.Error != "" {
@@ -232,6 +216,7 @@ func ShowInfo(inGame *generated.Game, tries int) {
 		status = fmt.Sprintf("La letra (%s) Ha sido encontrada 👍", inGame.WordSend)
 	}
 
+	results := ShowWord(inGame.Word, inGame.Encontrados)
 	pterm.DefaultSection.Println("Palabra: ", results)
 	pterm.Info.Println("El usuario", inGame.UserSend, " ha jugado: ", inGame.WordSend, "\nLetras encontradas: ", inGame.Encontrados, " \nIntentos: ", tries, "\nEstatus: ", status)
 	pterm.Println()
@@ -249,4 +234,27 @@ func GetRandomGame(client generated.AhorcadoClient) (*generated.Game, error) {
 
 func GetRanking(client generated.AhorcadoClient) {
 	log.Println("Función no programada")
+}
+
+func ShowWord(clave string, letras []string) []string {
+	chars := []rune(clave)
+	var wordPositions []string
+
+	var encontrados []string = letras
+	var results []string
+	for i := 0; i < len(chars); i++ {
+		char := string(chars[i])
+		results = append(results, "_")
+		wordPositions = append(wordPositions, char)
+	}
+
+	for _, encontrado := range encontrados {
+		for i, worPos := range wordPositions {
+			if encontrado == worPos {
+				results[i] = worPos
+			}
+		}
+	}
+
+	return results
 }
