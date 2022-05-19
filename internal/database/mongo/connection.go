@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,8 +14,9 @@ import (
 func Connect() *mongo.Client {
 
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
+	uri := fmt.Sprintf("mongodb+srv://%s:%s@cluster0.y6tho.mongodb.net/?retryWrites=true&w=majority", os.Getenv("MONGODB_NAME"), os.Getenv("MONGODB_PASSWORD"))
 	clientOptions := options.Client().
-		ApplyURI("mongodb+srv://juanmachuca95:la4V302hsGYNCC8N@cluster0.y6tho.mongodb.net/?retryWrites=true&w=majority").
+		ApplyURI(uri).
 		SetServerAPIOptions(serverAPIOptions)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
