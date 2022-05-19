@@ -80,6 +80,8 @@ func main() {
 					inGame.Encontrados = in.Encontrados
 					inGame.Finalizada = in.Finalizada
 					inGame.Error = in.Error
+					inGame.WordSend = in.WordSend
+					inGame.UserSend = in.UserSend
 
 					if inGame.Finalizada {
 						GameWin(&inGame, myUser)
@@ -88,9 +90,7 @@ func main() {
 						pterm.Println()
 						Panel()
 					} else {
-						pterm.Println()
-						pterm.DefaultSection.Println("Encontrados: ", inGame.Encontrados)
-						pterm.Info.Println("En juego\nFinalizada: ", inGame.Finalizada, " \nIntentos: ", tries, "\nUsuario ", in.UserSend, "\nFallos: ", inGame.Error)
+						ShowInfo(&inGame, tries)
 						if inGame.Error != "" && in.UserSend == myUser {
 							tries--
 							frames.Frames(tries)
@@ -202,21 +202,30 @@ func GameWin(inGame *generated.Game, myUser string) {
 	}
 }
 
-func ShowInfo(inGame *generated.Game, tries int, userSend, wordSend string) {
+func ShowInfo(inGame *generated.Game, tries int) {
 	pterm.Println()
 	chars := []rune(inGame.Word)
 	var wordPositions []string
 
+	var encontrados []string = inGame.Encontrados
+	var results []string
 	for i := 0; i < len(chars); i++ {
 		char := string(chars[i])
+		results = append(results, "_")
 		wordPositions = append(wordPositions, char)
 	}
 
-	fmt.Println(wordPositions)
+	for _, encontrado := range encontrados {
+		for i, worPos := range wordPositions {
+			if encontrado == worPos {
+				results[i] = worPos
+			}
+		}
+	}
 
-	pterm.DefaultSection.Println("Encontrados: ", inGame.Encontrados)
-	pterm.Info.Println("En juego\nFinalizada: ", inGame.Finalizada, " \nIntentos: ", tries, "\nUsuario ", userSend, "\nFallos: ", inGame.Error)
-
+	pterm.DefaultSection.Println("Palabra: ", results)
+	pterm.Info.Println("El usuario", inGame.UserSend, " ha jugado: ", inGame.WordSend, "\nLetras encontradas: ", inGame.Encontrados, " \nIntentos: ", tries, "\nEstatus: ", inGame.Error)
+	pterm.Println()
 }
 
 func GetRandomGame(client generated.AhorcadoClient) (*generated.Game, error) {
