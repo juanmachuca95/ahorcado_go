@@ -1,7 +1,7 @@
 package frames
 
 import (
-	"fmt"
+	"github.com/pterm/pterm"
 )
 
 func Frames(try int) {
@@ -35,7 +35,7 @@ func Inicial(i int) {
 			  / \  |
 			 ______|
 		`
-		fmt.Println(s)
+		pterm.BgRed.Println(s)
 	}
 }
 
@@ -49,7 +49,7 @@ func FirstAttempt(i int) {
 			  /    |
 			 ______|
 		`
-		fmt.Println(s)
+		pterm.BgRed.Println(s)
 	}
 }
 
@@ -63,7 +63,7 @@ func SecondAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Println(s)
+		pterm.BgRed.Println(s)
 	}
 }
 
@@ -77,7 +77,7 @@ func ThirdAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Println(s)
+		pterm.BgRed.Println(s)
 	}
 }
 
@@ -91,7 +91,7 @@ func FourthAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Println(s)
+		pterm.BgRed.Println(s)
 	}
 }
 
@@ -105,7 +105,7 @@ func FifthAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Println(s)
+		pterm.BgRed.Println(s)
 	}
 }
 
@@ -119,6 +119,6 @@ func SixthAttempt(i int) {
 			       |
 			 ______|
 		`
-		fmt.Println(s)
+		pterm.BgRed.Println(s)
 	}
 }
