@@ -16,7 +16,7 @@ Si quieres jugar de forma local, debes crear un archivo ```.env``` con tus varia
 
 El gRPC Server se ejecuta:
 ```go
-    go run cmd/main/main.go
+go run cmd/main/main.go
 ```
 
 ```go
