@@ -35,7 +35,7 @@ func Inicial(i int) {
 			  / \  |
 			 ______|
 		`
-		pterm.BgRed.Println(s)
+		pterm.FgRed.Println(s)
 	}
 }
 
@@ -49,7 +49,7 @@ func FirstAttempt(i int) {
 			  /    |
 			 ______|
 		`
-		pterm.BgRed.Println(s)
+		pterm.FgRed.Println(s)
 	}
 }
 
@@ -63,7 +63,7 @@ func SecondAttempt(i int) {
 			       |
 			 ______|
 		`
-		pterm.BgRed.Println(s)
+		pterm.FgRed.Println(s)
 	}
 }
 
@@ -77,7 +77,7 @@ func ThirdAttempt(i int) {
 			       |
 			 ______|
 		`
-		pterm.BgRed.Println(s)
+		pterm.FgRed.Println(s)
 	}
 }
 
@@ -91,7 +91,7 @@ func FourthAttempt(i int) {
 			       |
 			 ______|
 		`
-		pterm.BgRed.Println(s)
+		pterm.FgRed.Println(s)
 	}
 }
 
@@ -105,7 +105,7 @@ func FifthAttempt(i int) {
 			       |
 			 ______|
 		`
-		pterm.BgRed.Println(s)
+		pterm.FgRed.Println(s)
 	}
 }
 
@@ -119,6 +119,6 @@ func SixthAttempt(i int) {
 			       |
 			 ______|
 		`
-		pterm.BgRed.Println(s)
+		pterm.FgRed.Println(s)
 	}
 }
