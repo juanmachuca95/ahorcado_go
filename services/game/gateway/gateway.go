@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bxcodec/faker"
 	"github.com/juanmachuca95/ahorcado_go/generated"
 	clientMongoDB "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
 	"github.com/juanmachuca95/ahorcado_go/services/game/models"
@@ -20,6 +21,7 @@ type GameGateway interface {
 	GetRandomGame() (generated.Game, error)
 	CreateGame() (models.Game, error)
 	MyGame(*generated.Word) (generated.Game, error)
+	SeedWords() bool
 }
 
 type GameService struct {
@@ -57,6 +59,9 @@ func (s *GameService) CreateGame() (models.Game, error) {
 }
 
 func (s *GameService) GetRandomGame() (generated.Game, error) {
+
+	s.SeedWords()
+
 	pipeline := []bson.D{
 		{{"$match", bson.D{{"finalizada", false}}}},
 		{{"$sample", bson.D{{"size", 1}}}},
@@ -317,4 +322,28 @@ func AlreadyFound(character string, encontrados []string) bool {
 		}
 	}
 	return result
+}
+
+/* Seeder */
+func (s *GameService) SeedWords() bool {
+	collection := s.Client.Database("ahorcado").Collection("game")
+
+	var docs []interface{}
+	for i := 0; i <= 500; i++ {
+		var doc interface{}
+		doc = bson.D{{"word", faker.WORD}, {"winner", ""}, {"finalzado", false}, {"encontrados", []string{}}}
+		docs = append(docs, doc)
+	}
+
+	result, err := collection.InsertMany(context.TODO(), docs)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	list_ids := result.InsertedIDs
+	fmt.Printf("Documents inserted: %v\n", len(list_ids))
+	for _, id := range list_ids {
+		fmt.Printf("Inserted document with _id: %v\n", id)
+	}
+
+	return true
 }

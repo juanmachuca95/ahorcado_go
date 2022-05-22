@@ -18,20 +18,21 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var tls bool
+var caFile, serverAddr, serverHostOverride string
+
 func init() {
 	/* Mis variables de entorno */
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-}
 
-var (
-	tls                = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	caFile             = flag.String("ca_file", os.Getenv("IP_SERVER_PORT"), "The file containing the CA root cert file")
-	serverAddr         = flag.String("addr", "localhost:8080", "The server address in the format of host:port")
-	serverHostOverride = flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
-)
+	tls = *flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
+	caFile = *flag.String("ca_file", "", "The file containing the CA root cert file")
+	serverAddr = *flag.String("addr", os.Getenv("IP_SERVER_PORT"), "The server address in the format of host:port")
+	serverHostOverride = *flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
+}
 
 var encontrados = []string{}
 var collection *mongo.Collection
@@ -39,9 +40,10 @@ var ctx = context.TODO()
 var user string = "default"
 
 func main() {
-	flag.Parse()
 
-	conn, err := grpc.Dial(*serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	flag.Parse()
+	log.Println(os.Getenv("IP_SERVER_PORT"), serverAddr)
+	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
