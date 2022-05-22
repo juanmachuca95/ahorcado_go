@@ -1,4 +1,4 @@
-# (💀 Ahorcado) - Golang 
+# 💀 (Ahorcado) Multiplayer - Golang
 
 Esta es mi implementación del juego del ahorcado en Golang.
 
