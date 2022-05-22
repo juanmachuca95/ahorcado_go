@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bxcodec/faker"
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/juanmachuca95/ahorcado_go/generated"
 	clientMongoDB "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
 	"github.com/juanmachuca95/ahorcado_go/services/game/models"
@@ -331,7 +331,7 @@ func (s *GameService) SeedWords() bool {
 	var docs []interface{}
 	for i := 0; i <= 500; i++ {
 		var doc interface{}
-		doc = bson.D{{"word", faker.WORD}, {"winner", ""}, {"finalzado", false}, {"encontrados", []string{}}}
+		doc = bson.D{{"word", gofakeit.Word()}, {"winner", ""}, {"finalzado", false}, {"encontrados", []string{}}}
 		docs = append(docs, doc)
 	}
 
