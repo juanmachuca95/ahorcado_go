@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/juanmachuca95/ahorcado_go/generated"
-	database "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
+	clientMongoDB "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
 	"github.com/juanmachuca95/ahorcado_go/services/game/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,12 +23,12 @@ type GameGateway interface {
 }
 
 type GameService struct {
-	*mongo.Client
+	*clientMongoDB.MongoDBClient
 }
 
 func NewGameGateway() GameGateway {
 	return &GameService{
-		database.Connect(),
+		clientMongoDB.Connect(),
 	}
 }
 
