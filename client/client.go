@@ -42,7 +42,6 @@ var user string = "default"
 func main() {
 
 	flag.Parse()
-	log.Println(os.Getenv("IP_SERVER_PORT"), serverAddr)
 	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
@@ -102,6 +101,7 @@ func main() {
 						GameWin(&inGame, myUser)
 						activateStream = false
 						finded = true
+						input = ""
 						pterm.Println()
 						Panel()
 					} else {
@@ -115,6 +115,7 @@ func main() {
 							pterm.FgRed.Println("😥 Has perdido, lo sentimos. Inténtalo de nuevo más tarde.")
 							activateStream = false
 							finded = true
+							input = ""
 						}
 						pterm.Println()
 					}
@@ -142,9 +143,6 @@ func main() {
 		}
 
 		/* Entradas del usuario*/
-		Panel()
-		pterm.FgDefault.Print("Ingresa una opcion: \n")
-		fmt.Scan(&myInput)
 		switch myInput {
 		case "1":
 			pterm.FgYellow.Print("[+] Ingresa un username: ")
@@ -179,6 +177,8 @@ func main() {
 			GetRanking(client)
 		default:
 			Panel()
+			pterm.FgDefault.Print("Ingresa una opcion: \n")
+			fmt.Scan(&myInput)
 		}
 	}
 }
@@ -211,7 +211,7 @@ func GameWin(inGame *generated.Game, myUser string) {
 		pterm.DefaultBox.WithTitle("Ahorcado | Made by @juanmachuca95").WithTitleBottomRight().WithRightPadding(0).WithBottomPadding(0).Println(panels)
 	} else {
 		pterm.Println()
-		pterm.FgYellow.Println("👎 Han estado más rapido que tú, la proxima será")
+		pterm.FgYellow.Println("👎 Han estado más rapido que tú, la proxima será. La palabra era: ", inGame.Word)
 		pterm.FgCyan.Println("Ha ganado el usuario: ", inGame.Winner, "✅.")
 		pterm.Println()
 	}
@@ -228,7 +228,7 @@ func ShowInfo(inGame *generated.Game, tries int) {
 	}
 
 	results := ShowWord(inGame.Word, inGame.Encontrados)
-	pterm.DefaultSection.Println("Palabra: ", results)
+	pterm.DefaultSection.Println("Palabra: ", results, " - (", len(inGame.Word), ") Letras")
 	pterm.Info.Println("El usuario", inGame.UserSend, " ha jugado: ", inGame.WordSend, "\nLetras encontradas: ", inGame.Encontrados, " \nIntentos: ", tries, "\nEstatus: ", status)
 	pterm.Println()
 }
