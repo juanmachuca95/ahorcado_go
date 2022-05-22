@@ -139,7 +139,7 @@ func (s *GameService) GetRandomGameToSet() (generated.Game, error) {
 	}
 
 	return generated.Game{
-		Error: "No hay juegos dispnibles",
+		Error: "No hemos obtenido un getRandomGameToSet",
 	}, nil
 }
 
@@ -148,7 +148,6 @@ func (s *GameService) MyGame(word *generated.Word) (generated.Game, error) {
 
 	/* Juego terminado */
 	response := generated.Game{}
-
 	if game.Finalizada == true {
 		log.Println("1. Finalizada")
 		errorMessage := fmt.Sprint("Este juego ha sido finalizado")
@@ -300,7 +299,7 @@ func (s GameService) UpdateWinner(word *generated.Word, game models.Game) (bool,
 	}
 
 	filter := bson.M{"_id": bson.M{"$eq": objID}}
-	update := bson.M{"$set": bson.M{"encontrados": game.Encontrados, "finalizada": true, "winner": word.User}}
+	update := bson.M{"$set": bson.M{"encontrados": game.Encontrados, "finalizada": true, "winner": word.User, "ingame": false}}
 	_, err = collection.UpdateOne(
 		context.Background(),
 		filter,
@@ -412,11 +411,10 @@ func AlreadyFound(character string, encontrados []string) bool {
 /* Seeder */
 func (s *GameService) SeedWords() bool {
 	collection := s.Client.Database("ahorcado").Collection("game")
-
 	var docs []interface{}
 	for i := 0; i <= 500; i++ {
 		var doc interface{}
-		doc = bson.D{{"word", gofakeit.Word()}, {"winner", ""}, {"finalzado", false}, {"encontrados", []string{}}}
+		doc = bson.D{{"word", strings.ToUpper(gofakeit.Word())}, {"winner", ""}, {"finalizada", false}, {"encontrados", []string{}}}
 		docs = append(docs, doc)
 	}
 
