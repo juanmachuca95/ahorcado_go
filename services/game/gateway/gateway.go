@@ -63,7 +63,7 @@ func (s *GameService) CreateGame() (models.Game, error) {
 
 func (s *GameService) GetRandomGame() (generated.Game, error) {
 	pipeline := []bson.D{
-		{{"$match", bson.D{{"finalizada", false}}}},
+		{{"$match", bson.D{{"finalizada", false}, {"ingame", true}}}},
 		{{"$sample", bson.D{{"size", 1}}}},
 	}
 	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
@@ -104,7 +104,7 @@ func (s *GameService) GetRandomGame() (generated.Game, error) {
 
 func (s *GameService) GetRandomGameToSet() (generated.Game, error) {
 	pipeline := []bson.D{
-		{{"$match", bson.D{{"finalizada", false}, {"ingame", true}}}},
+		{{"$match", bson.D{{"finalizada", false}}}},
 		{{"$sample", bson.D{{"size", 1}}}},
 	}
 	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
