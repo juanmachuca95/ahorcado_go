@@ -2,6 +2,7 @@ package game
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -19,9 +20,11 @@ import (
 
 type GameGateway interface {
 	GetRandomGame() (generated.Game, error)
+	GetRandomGameToSet() (generated.Game, error)
 	CreateGame() (models.Game, error)
 	MyGame(*generated.Word) (generated.Game, error)
 	SeedWords() bool
+	UpdateGame() (bool, error)
 }
 
 type GameService struct {
@@ -59,11 +62,49 @@ func (s *GameService) CreateGame() (models.Game, error) {
 }
 
 func (s *GameService) GetRandomGame() (generated.Game, error) {
-
-	s.SeedWords()
-
 	pipeline := []bson.D{
 		{{"$match", bson.D{{"finalizada", false}}}},
+		{{"$sample", bson.D{{"size", 1}}}},
+	}
+	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return generated.Game{
+			Id:          "",
+			Word:        "",
+			Winner:      "",
+			Encontrados: []string{},
+			Finalizada:  false,
+			Error:       "No fue posible obtener un random game",
+		}, err
+	}
+
+	var game models.Game
+	for cursor.Next(context.Background()) {
+		err := cursor.Decode(&game)
+		if err != nil {
+			log.Fatal("Error decode - error: ", err.Error())
+		}
+	}
+
+	if game.Word != "" {
+		return generated.Game{
+			Id:          game.Id.Hex(),
+			Word:        game.Word,
+			Winner:      game.Winner,
+			Encontrados: game.Encontrados,
+			Finalizada:  game.Finalizada,
+			Error:       "",
+		}, nil
+	}
+
+	return generated.Game{
+		Error: "No hay juegos dispnibles",
+	}, nil
+}
+
+func (s *GameService) GetRandomGameToSet() (generated.Game, error) {
+	pipeline := []bson.D{
+		{{"$match", bson.D{{"finalizada", false}, {"ingame", true}}}},
 		{{"$sample", bson.D{{"size", 1}}}},
 	}
 	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
@@ -275,6 +316,12 @@ func (s GameService) UpdateWinner(word *generated.Word, game models.Game) (bool,
 	}
 
 	fmt.Printf("Se ha actualizado el gamador del juego - id %s\n", game.Id.Hex())
+
+	_, err = s.UpdateGame()
+	if err != nil {
+		return false, err
+	}
+
 	return true, err
 }
 
@@ -292,6 +339,44 @@ func (s GameService) GetGame(gameId string) (models.Game, error) {
 	}
 
 	return game, nil
+}
+
+func (s GameService) UpdateGame() (bool, error) {
+	collection := s.Client.Database("ahorcado").Collection("game")
+
+	/* Obtengo un random game */
+	game, err := s.GetRandomGameToSet()
+	if err != nil {
+		return false, errors.New("No se ha podido establecer un nuevo game")
+	}
+
+	objID, err := primitive.ObjectIDFromHex(game.Id)
+	if err != nil {
+		fmt.Println("ObjectIDFromHex ERROR", err)
+		return false, err
+	} else {
+		fmt.Println("ObjectIDFromHex:", objID)
+	}
+
+	filter := bson.M{"_id": bson.M{"$eq": objID}}
+	update := bson.M{"$set": bson.M{"ingame": true}}
+	_, err = collection.UpdateOne(
+		context.Background(),
+		filter,
+		update,
+	)
+
+	/* El ganador setea el proximo juego. */
+	_, err = collection.UpdateOne(
+		context.Background(),
+		filter,
+		update)
+	if err != nil {
+		return false, err
+	}
+
+	fmt.Printf("Se actualizo el proximo juego id: %s\n", game.Id)
+	return true, err
 }
 
 /* Funciones auxiliares - Win en las letra */
