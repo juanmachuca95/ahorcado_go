@@ -3,6 +3,9 @@ module github.com/juanmachuca95/ahorcado_go
 go 1.18
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.16.0
+	github.com/joho/godotenv v1.4.0
+	github.com/pterm/pterm v0.12.41
 	go.mongodb.org/mongo-driver v1.9.1
 	google.golang.org/grpc v1.46.2
 	google.golang.org/protobuf v1.28.0
@@ -10,16 +13,13 @@ require (
 
 require (
 	github.com/atomicgo/cursor v0.0.1 // indirect
-	github.com/bxcodec/faker v2.0.1+incompatible // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gookit/color v1.5.0 // indirect
-	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pterm/pterm v0.12.41 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.0.2 // indirect
