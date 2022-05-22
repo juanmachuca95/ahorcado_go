@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/atomicgo/cursor v0.0.1 // indirect
+	github.com/bxcodec/faker v2.0.1+incompatible // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
