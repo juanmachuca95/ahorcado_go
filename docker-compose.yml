@@ -1,0 +1,15 @@
+version: "3.3"
+services:
+  ahorcado_go:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      ahorcado:
+    container_name: ahorcadogo
+
+networks:
+  ahorcado:
+    driver: bridge
