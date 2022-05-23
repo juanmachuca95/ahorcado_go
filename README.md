@@ -10,7 +10,8 @@ Esta es mi implementación del juego del ahorcado en Golang.
 
 
 ### ¿Como juego?
-Si quieres jugar de forma local, debes crear un archivo ```.env``` con tus variables con respecto a la base de datos en mongodb.
+El juego posee un panel de opciones, en el cual el usuario ingresa un nombre de usuario. 
+Una vez dentro del juego, compites con cualquiera que tambien este conectado al juego.
 
 ```git clone https://github.com/juanmachuca95/ahorcado_go```
 
