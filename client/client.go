@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -23,7 +24,7 @@ var caFile, serverAddr, serverHostOverride string
 
 func init() {
 	/* Mis variables de entorno */
-	err := godotenv.Load()
+	err := godotenv.Load(filepath.Join("./", ".env"))
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
