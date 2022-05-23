@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -21,11 +22,17 @@ import (
 var tls bool
 var caFile, serverAddr, serverHostOverride string
 
+const projectDirName = "ahorcado_golang"
+
 func init() {
 	/* Mis variables de entorno */
-	err := godotenv.Load(os.ExpandEnv("$GOPATH/src/github.com/adamcohen/godotenv-test/.env"))
+	projectName := regexp.MustCompile(`^(.*` + projectDirName + `)`)
+	currentWorkDirectory, _ := os.Getwd()
+	rootPath := projectName.Find([]byte(currentWorkDirectory))
+
+	err := godotenv.Load(string(rootPath) + `/.env`)
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file")
 	}
 
 	tls = *flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
