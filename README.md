@@ -22,5 +22,6 @@ cd ahorcado_go
 Que te diviertas!
 
 Si te gusto el juego regalame un estrella ⭐ a el repositorio
-Made by <b>@juanmachuca95</b>
+
+Hecho por 🤓 <b>@juanmachuca95</b>
 
