@@ -11,11 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type MongoDBClient struct {
-	*mongo.Client
-}
-
-func Connect() *MongoDBClient {
+func Connect() *mongo.Client {
 
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
 	uri := fmt.Sprintf("mongodb+srv://%s:%s@cluster0.y6tho.mongodb.net/?retryWrites=true&w=majority", os.Getenv("MONGODB_NAME"), os.Getenv("MONGODB_PASSWORD"))
@@ -33,7 +29,7 @@ func Connect() *MongoDBClient {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Successfully connected and pinged.")
 
-	return &MongoDBClient{client}
+	fmt.Println("Successfully connected and pinged.")
+	return client
 }

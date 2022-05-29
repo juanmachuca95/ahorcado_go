@@ -1,43 +1,83 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
-	"github.com/juanmachuca95/ahorcado_go/generated"
-	service "github.com/juanmachuca95/ahorcado_go/services/game/handlers"
+	gmService "github.com/juanmachuca95/ahorcado_go/game/handler"
+	database "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
+	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
 func main() {
 	/* Mis variables de entorno */
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	LoadEnv()
 
 	addr := fmt.Sprintf("0.0.0.0:%s", os.Getenv("SERVER_PORT"))
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		panic("cannot create tcp connection" + err.Error())
 	}
-	log.Println("The server is running successfully on port ", os.Getenv("SERVER_PORT"))
 
-	ahorcado := service.NewAhorcadoServer()
+	// Database
+	db := database.Connect()
 
+	// Service
+	game := gmService.NewGameService(db)
 	var opts []grpc.ServerOption
 	serv := grpc.NewServer(opts...)
 
 	/* Registro de servicios */
-	generated.RegisterAhorcadoServer(serv, ahorcado) // Register Services Cliente
+	ah.RegisterAhorcadoServer(serv, game) // Register Services Cliente
 
 	/* Enable reflection */
 	reflection.Register(serv)
-	if err = serv.Serve(listener); err != nil {
-		panic("cannot initialize the server" + err.Error())
+	// Serve gRPC server
+
+	log.Println("Serving gRPC on 0.0.0.0:8080")
+	go func() {
+		log.Fatalln(serv.Serve(listener))
+	}()
+
+	conn, err := grpc.DialContext(
+		context.Background(),
+		"0.0.0.0:8080",
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatalln("Failed to dial server:", err)
+	}
+
+	gwmux := runtime.NewServeMux()
+
+	// Register AhorcadoHandler
+	err = ah.RegisterAhorcadoHandler(context.Background(), gwmux, conn)
+	if err != nil {
+		log.Fatalln("Failed to register gateway:", err)
+	}
+
+	gwServer := &http.Server{
+		Addr:    ":8090",
+		Handler: gwmux,
+	}
+
+	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8090")
+	log.Fatalln(gwServer.ListenAndServe())
+}
+
+func LoadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
 	}
 }

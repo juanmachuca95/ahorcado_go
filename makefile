@@ -3,3 +3,13 @@ gen-grpc-go:
 
 clean-grpc-go:
 	rm -rf generated/*.pb.go
+
+gen-grpc-gateway:
+	protoc -I ./protos \
+	--go_out ./protos --go_opt paths=source_relative \
+	--go-grpc_out ./protos --go-grpc_opt paths=source_relative \
+	--grpc-gateway_out ./protos --grpc-gateway_opt paths=source_relative \
+	./protos/ahorcado/proto.proto
+	
+clean-grpc-gateway:
+	rm -rf protos/ahorcado/*.pb.gw.go

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package protos;
+option go_package = "github.com/juanmachuca95/ahorcado_go/protos/ahorcado/v1";
+import "google/api/annotations.proto";
+
+message Word {
+    string game_id = 1;
+    string user = 2;
+    string word = 3;
+}
+
+message Game {
+    string id = 1;
+    string word = 2;
+    string winner = 3;
+    repeated string encontrados = 4;
+    bool finalizada = 5;
+    string error = 6;
+    string user_send = 7;
+    string word_send = 8;
+}
+
+message Empty {}
+
+service Ahorcado {
+    rpc GetRandomGame (Empty) returns (Game){
+        option (google.api.http) = {
+            get: "/api/v1/game" 
+        };
+    };
+    
+    rpc Ahorcado (stream Word) returns (stream Game){
+        option (google.api.http) = {
+            get: "/api/v1/playing"
+        };
+    };
+}
