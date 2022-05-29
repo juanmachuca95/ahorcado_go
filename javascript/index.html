@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤓 by Juanmachuca95</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <div class="container text-center">
+        Ahorcado Golang - gRPC *
+        <div id="word">
+    
+        </div>
+    </div>
+
+    <script>
+        const word = document.querySelector("#word");
+
+        let socket = new WebSocket("ws://0.0.0.0:8090/api/v1/game");
+        socket.onopen = function (e) {
+            console.log("[open] Connection established");
+            console.log("Sending to server");
+            socket.send("hola juan");
+        };
+
+        socket.onmessage = function (event) {
+            let obj = JSON.parse(event.data);
+            console.log(obj)
+            word.textContent = obj.word;
+            console.log(`[message] Data received from server: ${event.data}`);
+        };
+
+        /* socket.onclose = function (event) {
+            if (event.wasClean) {
+                console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+            } else {
+                // e.g. server process killed or network down
+                // event.code is usually 1006 in this case
+                console.log('[close] Connection died');
+            }
+        }; */
+
+        socket.onerror = function (error) {
+            console.log(`[error] ${error.message}`);
+        };
+    </script>
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

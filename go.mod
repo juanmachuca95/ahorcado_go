@@ -6,6 +6,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.2
 	github.com/joho/godotenv v1.4.0
 	github.com/pterm/pterm v0.12.41
+	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75
 	go.mongodb.org/mongo-driver v1.9.1
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
 	google.golang.org/grpc v1.46.2
@@ -18,10 +19,12 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gookit/color v1.5.0 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.0.2 // indirect
 	github.com/xdg-go/stringprep v1.0.2 // indirect

@@ -13,6 +13,7 @@ import (
 	gmService "github.com/juanmachuca95/ahorcado_go/game/handler"
 	database "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
+	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -68,7 +69,7 @@ func main() {
 
 	gwServer := &http.Server{
 		Addr:    ":8090",
-		Handler: gwmux,
+		Handler: wsproxy.WebsocketProxy(gwmux),
 	}
 
 	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8090")
