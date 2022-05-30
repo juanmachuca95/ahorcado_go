@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	m "github.com/juanmachuca95/ahorcado_go/game/models"
+	help "github.com/juanmachuca95/ahorcado_go/helpers"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -106,7 +107,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 		return &m.Game{}, errors.New("Este juego ha sido finalizado.")
 	}
 
-	if AlreadyFound(word, game.Encontrados) { // letra ya encontrada
+	if help.AlreadyFound(word, game.Encontrados) { // letra ya encontrada
 		log.Println("3. Ya ha sido encontrada la letra")
 		messageError := fmt.Sprintf("La letra %v ya figura en la lista de encontrados 👎", word)
 		return game, errors.New(messageError)
@@ -130,7 +131,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 
 	log.Println("4. La palabra ingresada coincide con una letra de la palabra del juego")
 	game.Encontrados = append(game.Encontrados, word)
-	if Win(game.Word, game.Encontrados) { // si es la última letra para encontrar
+	if help.Win(game.Word, game.Encontrados) { // si es la última letra para encontrar
 		ok, err := s.UpdateWinner(word, user, *game)
 		if !ok {
 			messageError := fmt.Sprintf("No fue posible actualizar el Game - error: %v", err.Error())
@@ -246,31 +247,4 @@ func (s *GameService) UpdateGame() (bool, error) {
 
 	fmt.Printf("Se actualizo el proximo juego id: %s\n", game.Id)
 	return true, err
-}
-
-func AlreadyFound(character string, encontrados []string) bool {
-	var result bool = false
-	for _, encontrado := range encontrados {
-		if character == encontrado {
-			result = true
-		}
-	}
-	return result
-}
-
-func Win(clave string, encontrados []string) bool {
-	var fin bool = false
-	var lengthClave int = len(clave)
-	var lengthEncontrados int = 0
-	for _, encontrado := range encontrados {
-		count := strings.Count(clave, encontrado)
-		lengthEncontrados += count
-	}
-
-	log.Println("Cantidad de encontrados = ", lengthEncontrados, " Cantidad total de la clave = ", lengthClave)
-	if lengthEncontrados == lengthClave {
-		fin = true
-	}
-
-	return fin
 }
