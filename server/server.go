@@ -13,6 +13,7 @@ import (
 	gmService "github.com/juanmachuca95/ahorcado_go/game/handler"
 	database "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
+	"github.com/rs/cors"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -72,9 +73,10 @@ func main() {
 		log.Fatalln("Failed to register gateway:", err)
 	}
 
+	handler := cors.Default().Handler(wsproxy.WebsocketProxy(gwmux))
 	gwServer := &http.Server{
 		Addr:    ":8090",
-		Handler: wsproxy.WebsocketProxy(gwmux),
+		Handler: handler,
 	}
 
 	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8090")
@@ -87,3 +89,27 @@ func LoadEnv() {
 		log.Fatal("Error loading .env file")
 	}
 }
+
+/* func allowedOrigin(origin string) bool {
+	if viper.GetString("cors") == "*" {
+		return true
+	}
+	if matched, _ := regexp.MatchString(viper.GetString("cors"), origin); matched {
+		return true
+	}
+	return false
+}
+
+func cors(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if allowedOrigin(r.Header.Get("Origin")) {
+			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, ResponseType")
+		}
+		if r.Method == "OPTIONS" {
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+} */

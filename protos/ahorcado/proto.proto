@@ -3,6 +3,7 @@ syntax = "proto3";
 package protos;
 option go_package = "github.com/juanmachuca95/ahorcado_go/protos/ahorcado/v1";
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
 message Word {
     string game_id = 1;
@@ -21,10 +22,8 @@ message Game {
     string word_send = 8;
 }
 
-message Empty {}
-
 service Ahorcado {
-    rpc GetRandomGame (Empty) returns (Game){
+    rpc GetRandomGame (google.protobuf.Empty) returns (Game){
         option (google.api.http) = {
             get: "/api/v1/game" 
         };

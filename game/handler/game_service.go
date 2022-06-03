@@ -2,11 +2,13 @@ package game
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	gm "github.com/juanmachuca95/ahorcado_go/game/gateway"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type GameService struct {
@@ -82,12 +84,13 @@ func (g *GameService) Ahorcado(stream ah.Ahorcado_AhorcadoServer) error {
 	return err
 }
 
-func (g *GameService) GetRandomGame(ctx context.Context, req *ah.Empty) (*ah.Game, error) {
+func (g *GameService) GetRandomGame(ctx context.Context, req *emptypb.Empty) (*ah.Game, error) {
 	game, err := g.gmGtw.GetRandomGame()
 	if err != nil {
 		return &ah.Game{}, err
 	}
 
+	log.Println("Holas", game)
 	return &ah.Game{
 		Id:          game.Id.Hex(),
 		Word:        game.Word,

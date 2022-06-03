@@ -1,0 +1,11 @@
+<div id="app" v-cloak>
+	<h1>gRPC through gopherjs!</h1>
+	<p>
+		<h2>Game</h2>
+		<button @click="GetGame()">Send GET</button>
+		<div v-if="game">
+			Message: {{ game.word }}, Num: {{ game.id }}
+		</div>
+	</p>
+</div>
+<script src="index.js"></script>
