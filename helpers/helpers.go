@@ -30,3 +30,26 @@ func Win(clave string, encontrados []string) bool {
 
 	return winner
 }
+
+func ShowWord(clave string, letras []string) string {
+	chars := []rune(clave)
+	var wordPositions []string
+
+	var encontrados []string = letras
+	var results []string
+	for i := 0; i < len(chars); i++ {
+		char := string(chars[i])
+		results = append(results, "_")
+		wordPositions = append(wordPositions, char)
+	}
+
+	for _, encontrado := range encontrados {
+		for i, worPos := range wordPositions {
+			if encontrado == worPos {
+				results[i] = worPos
+			}
+		}
+	}
+
+	return strings.Join(results, "")
+}

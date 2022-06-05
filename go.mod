@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gopherjs/gopherjs v1.17.2
+	github.com/gopherjs/websocket v0.0.0-20191103002815-9a42957e2b3a
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
 	github.com/johanbrandhorst/gopherjs-json v0.0.0-20170416232053-16ebfe289840
 	github.com/joho/godotenv v1.4.0

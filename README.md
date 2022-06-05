@@ -26,3 +26,4 @@ Si te gusto el juego regalame un estrella ⭐ a el repositorio
 
 Hecho por 🤓 <b>@juanmachuca95</b>
 
+Inspirado en el blog https://jbrandhorst.com/post/gopherjs-client-grpc-server-3/ 

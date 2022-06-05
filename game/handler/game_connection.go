@@ -2,6 +2,7 @@ package game
 
 import (
 	"io"
+	"log"
 
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 )
@@ -52,6 +53,7 @@ func (c *Connection) start() {
 func (c *Connection) GetMessages(broadcast chan<- *ah.Word) error {
 	for {
 		msg, err := c.conn.Recv()
+		log.Println("Bidi - ", msg.GameId, msg.User, msg.Word)
 		if err == io.EOF {
 			c.Close()
 			return nil

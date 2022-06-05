@@ -39,3 +39,22 @@ func TestWin(t *testing.T) {
 		t.Errorf("Failed to test Win, it's expected (%v), but was get (%v)", tt.want, got)
 	}
 }
+
+func TestShowWord(t *testing.T) {
+	tt := struct {
+		name   string
+		letras []string
+		clave  string
+		want   string
+	}{
+		name:   "Testing Show Word",
+		letras: []string{"P", "E", "M"},
+		clave:  "PROBLEM",
+		want:   "P____EM",
+	}
+
+	if got := ShowWord(tt.clave, tt.letras); got != tt.want {
+		t.Log(tt.name)
+		t.Errorf("Failed to test ShowWord, it's expected (%v), but was get (%v)", tt.want, got)
+	}
+}

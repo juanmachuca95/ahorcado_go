@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func Connect() *mongo.Client {
+func Connect() *mongo.Database {
 
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
 	uri := fmt.Sprintf("mongodb+srv://%s:%s@cluster0.y6tho.mongodb.net/?retryWrites=true&w=majority", os.Getenv("MONGODB_NAME"), os.Getenv("MONGODB_PASSWORD"))
@@ -30,6 +30,7 @@ func Connect() *mongo.Client {
 		log.Fatal(err)
 	}
 
+	db := client.Database("ahorcado")
 	fmt.Println("Successfully connected and pinged.")
-	return client
+	return db
 }

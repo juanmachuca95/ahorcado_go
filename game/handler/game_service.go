@@ -20,7 +20,7 @@ type GameService struct {
 	connLock    sync.Mutex
 }
 
-func NewGameService(db *mongo.Client) *GameService {
+func NewGameService(db *mongo.Database) *GameService {
 	game := &GameService{
 		gmGtw:     gm.NewGameGateway(db),
 		broadcast: make(chan *ah.Word),
@@ -72,7 +72,7 @@ func (g *GameService) Ahorcado(stream ah.Ahorcado_AhorcadoServer) error {
 	g.connLock.Unlock()
 
 	err := conn.GetMessages(g.broadcast)
-
+	log.Print("\nAhorcado\n")
 	g.connLock.Lock()
 	for i, v := range g.connections {
 		if v == conn {

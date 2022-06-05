@@ -5,15 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	m "github.com/juanmachuca95/ahorcado_go/game/models"
+	q "github.com/juanmachuca95/ahorcado_go/game/querys"
 	help "github.com/juanmachuca95/ahorcado_go/helpers"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var collection = "game"
 
 type GameStorage interface {
 	getRandomGame() (*m.Game, error)
@@ -22,19 +24,16 @@ type GameStorage interface {
 }
 
 type GameService struct {
-	*mongo.Client
+	*mongo.Database
 }
 
-func NewGameStorageGateway(db *mongo.Client) GameStorage {
+func NewGameStorageGateway(db *mongo.Database) GameStorage {
 	return &GameService{db}
 }
 
 func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
-	pipeline := []bson.D{
-		{{"$match", bson.D{{"finalizada", false}}}},
-		{{"$sample", bson.D{{"size", 1}}}},
-	}
-	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
+	pipeline := q.GetRandomGameToSet()
+	cursor, err := s.Collection(collection).Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return &m.Game{}, err
 	}
@@ -55,12 +54,8 @@ func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
 }
 
 func (s *GameService) getRandomGame() (*m.Game, error) {
-	pipeline := []bson.D{
-		{{"$match", bson.D{{"finalizada", false}, {"ingame", true}}}},
-		{{"$sample", bson.D{{"size", 1}}}},
-	}
-
-	cursor, err := s.Client.Database("ahorcado").Collection("game").Aggregate(context.Background(), pipeline)
+	pipeline := q.GetRandomGame()
+	cursor, err := s.Collection(collection).Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return &m.Game{
 			Encontrados: []string{},
@@ -84,11 +79,12 @@ func (s *GameService) getRandomGame() (*m.Game, error) {
 }
 
 func (s *GameService) getGame(gameId string) (*m.Game, error) {
-	collection := s.Client.Database("ahorcado").Collection("game")
-
+	collection := s.Collection(collection)
 	objID, _ := primitive.ObjectIDFromHex(gameId)
+
 	var game m.Game
-	err := collection.FindOne(context.TODO(), bson.D{{"_id", objID}}).Decode(&game)
+	var query = q.GetGame(objID, false)
+	err := collection.FindOne(context.TODO(), query).Decode(&game)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return &game, err
@@ -100,15 +96,13 @@ func (s *GameService) getGame(gameId string) (*m.Game, error) {
 }
 
 func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
-	game, _ := s.getGame(id)
-
-	if game.Finalizada == true {
-		log.Println("1. Finalizada")
-		return &m.Game{}, errors.New("Este juego ha sido finalizado.")
+	log.Println("HOLA CHE --> word", word, " --> user ", user, " -- game id", id)
+	game, err := s.getGame(id)
+	if err != nil {
+		return &m.Game{}, errors.New("El juego ha finalizado o no está disponible.")
 	}
 
 	if help.AlreadyFound(word, game.Encontrados) { // letra ya encontrada
-		log.Println("3. Ya ha sido encontrada la letra")
 		messageError := fmt.Sprintf("La letra %v ya figura en la lista de encontrados 👎", word)
 		return game, errors.New(messageError)
 	}
@@ -143,7 +137,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 	}
 
 	log.Println("5. Actualización de letra encontrada") // si no es la última letra del juego actualizamos los encontrados
-	_, err := s.UpdateEncontrados(game.Encontrados, game.Id.Hex())
+	_, err = s.UpdateEncontrados(game.Encontrados, game.Id.Hex())
 	if err != nil {
 		log.Fatal("No fue posible actualizar las letras encontradas - error: ", err)
 	}
@@ -152,7 +146,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 }
 
 func (s *GameService) UpdateWinner(word, user string, game m.Game) (bool, error) {
-	collection := s.Client.Database("ahorcado").Collection("game")
+	collection := s.Collection(collection)
 	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
@@ -160,23 +154,18 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) (bool, error)
 		fmt.Println("ObjectIDFromHex:", objID)
 	}
 
-	filter := bson.M{"_id": bson.M{"$eq": objID}}
-	update := bson.M{"$set": bson.M{"encontrados": game.Encontrados, "finalizada": true, "winner": user, "ingame": false}}
+	filter, update := q.UpdateWinner(objID, game.Encontrados, user)
 	_, err = collection.UpdateOne(
 		context.Background(),
 		filter,
 		update,
 	)
 
-	_, err = collection.UpdateOne(
-		context.Background(),
-		filter,
-		update)
 	if err != nil {
 		return false, err
 	}
 
-	fmt.Printf("Se ha actualizado el gamador del juego - id %s\n", game.Id.Hex())
+	fmt.Printf("Se ha actualizado el ganador del juego - id %s\n", game.Id.Hex())
 	_, err = s.UpdateGame()
 	if err != nil {
 		return false, err
@@ -186,7 +175,7 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) (bool, error)
 }
 
 func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bool, error) {
-	collection := s.Client.Database("ahorcado").Collection("game")
+	collection := s.Collection(collection)
 	objID, err := primitive.ObjectIDFromHex(gameId)
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
@@ -202,19 +191,16 @@ func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bo
 		update,
 	)
 
-	// Check for error, else print the UpdateOne() API call results
 	if err != nil {
-		fmt.Println("UpdateOne() result ERROR:", err)
-		os.Exit(1)
+		return false, err
 	}
 
 	log.Printf("Actualización de letras encontradas en el juego id - %s\n", gameId)
-	return true, err
+	return true, nil
 }
 
 func (s *GameService) UpdateGame() (bool, error) {
-	collection := s.Client.Database("ahorcado").Collection("game")
-
+	collection := s.Collection(collection)
 	game, err := s.GetRandomGameToSet() // Obtengo un random game
 	if err != nil {
 		return false, errors.New("No se ha podido establecer un nuevo game")
@@ -228,19 +214,13 @@ func (s *GameService) UpdateGame() (bool, error) {
 		fmt.Println("ObjectIDFromHex:", objID)
 	}
 
-	filter := bson.M{"_id": bson.M{"$eq": objID}}
-	update := bson.M{"$set": bson.M{"ingame": true}}
+	filter, update := q.UpdateGame(objID)
 	_, err = collection.UpdateOne(
 		context.Background(),
 		filter,
 		update,
 	)
 
-	/* El ganador setea el proximo juego. */
-	_, err = collection.UpdateOne(
-		context.Background(),
-		filter,
-		update)
 	if err != nil {
 		return false, err
 	}

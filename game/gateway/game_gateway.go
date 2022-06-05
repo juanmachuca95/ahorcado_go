@@ -19,7 +19,7 @@ type GameInDB struct {
 	GameStorage
 }
 
-func NewGameGateway(db *mongo.Client) GameGateway {
+func NewGameGateway(db *mongo.Database) GameGateway {
 	return &GameInDB{NewGameStorageGateway(db)}
 }
 
