@@ -9,7 +9,7 @@ import (
 
 	m "github.com/juanmachuca95/ahorcado_go/game/models"
 	q "github.com/juanmachuca95/ahorcado_go/game/querys"
-	help "github.com/juanmachuca95/ahorcado_go/helpers"
+	helpers "github.com/juanmachuca95/ahorcado_go/helpers"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -102,7 +102,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 		return &m.Game{}, errors.New("El juego ha finalizado o no está disponible.")
 	}
 
-	if help.AlreadyFound(word, game.Encontrados) { // letra ya encontrada
+	if helpers.AlreadyFound(word, game.Encontrados) { // letra ya encontrada
 		messageError := fmt.Sprintf("La letra %v ya figura en la lista de encontrados 👎", word)
 		return game, errors.New(messageError)
 	}
@@ -125,7 +125,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 
 	log.Println("4. La palabra ingresada coincide con una letra de la palabra del juego")
 	game.Encontrados = append(game.Encontrados, word)
-	if help.Win(game.Word, game.Encontrados) { // si es la última letra para encontrar
+	if helpers.Win(game.Word, game.Encontrados) { // si es la última letra para encontrar
 		ok, err := s.UpdateWinner(word, user, *game)
 		if !ok {
 			messageError := fmt.Sprintf("No fue posible actualizar el Game - error: %v", err.Error())

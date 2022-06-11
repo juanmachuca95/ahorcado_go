@@ -32,16 +32,12 @@ func NewGameService(db *mongo.Database) *GameService {
 }
 
 func (g *GameService) Start() {
-	var errMsg string
 	running := true
 	for running {
 		select {
 		case msg := <-g.broadcast:
 			g.connLock.Lock()
-			game, err := g.gmGtw.InGame(msg.Word, msg.User, msg.GameId) // GetGame Service
-			if err != nil {
-				errMsg = err.Error()
-			}
+			game, _ := g.gmGtw.InGame(msg.Word, msg.User, msg.GameId) // GetGame Service
 
 			gameToSend := ah.Game{
 				Id:          game.Id.Hex(),
@@ -51,10 +47,10 @@ func (g *GameService) Start() {
 				Finalizada:  game.Finalizada,
 				UserSend:    msg.User,
 				WordSend:    msg.Word,
-				Error:       errMsg,
+				Error:       "Error",
 			}
-			errMsg = ""
 			for _, v := range g.connections {
+				log.Println("Enviando . . . ")
 				go v.Send(&gameToSend) // Usuario que lo envia
 			}
 			g.connLock.Unlock()
@@ -72,7 +68,10 @@ func (g *GameService) Ahorcado(stream ah.Ahorcado_AhorcadoServer) error {
 	g.connLock.Unlock()
 
 	err := conn.GetMessages(g.broadcast)
-	log.Print("\nAhorcado\n")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
 	g.connLock.Lock()
 	for i, v := range g.connections {
 		if v == conn {
@@ -90,7 +89,6 @@ func (g *GameService) GetRandomGame(ctx context.Context, req *emptypb.Empty) (*a
 		return &ah.Game{}, err
 	}
 
-	log.Println("Holas", game)
 	return &ah.Game{
 		Id:          game.Id.Hex(),
 		Word:        game.Word,

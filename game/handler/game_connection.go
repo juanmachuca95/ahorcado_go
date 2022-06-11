@@ -14,14 +14,15 @@ type Connection struct {
 }
 
 func NewConnectionGame(conn ah.Ahorcado_AhorcadoServer) *Connection {
-	c := &Connection{
+	c := Connection{
 		conn: conn,
 		send: make(chan *ah.Game),
 		quit: make(chan struct{}),
 	}
 
+	log.Println("Nueva conexión")
 	go c.start()
-	return c
+	return &c
 }
 
 func (c *Connection) Close() error {
@@ -43,6 +44,7 @@ func (c *Connection) start() {
 	for running {
 		select {
 		case msg := <-c.send:
+			log.Println("Enviando a conn ", msg.WordSend, " USUARIO ", msg.UserSend)
 			c.conn.Send(msg) // Ignoring the error, they just don't get this message.
 		case <-c.quit:
 			running = false
@@ -53,7 +55,6 @@ func (c *Connection) start() {
 func (c *Connection) GetMessages(broadcast chan<- *ah.Word) error {
 	for {
 		msg, err := c.conn.Recv()
-		log.Println("Bidi - ", msg.GameId, msg.User, msg.Word)
 		if err == io.EOF {
 			c.Close()
 			return nil

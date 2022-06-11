@@ -12,7 +12,6 @@ import (
 )
 
 func Connect() *mongo.Database {
-
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
 	uri := fmt.Sprintf("mongodb+srv://%s:%s@cluster0.y6tho.mongodb.net/?retryWrites=true&w=majority", os.Getenv("MONGODB_NAME"), os.Getenv("MONGODB_PASSWORD"))
 	clientOptions := options.Client().
@@ -30,7 +29,7 @@ func Connect() *mongo.Database {
 		log.Fatal(err)
 	}
 
-	db := client.Database("ahorcado")
+	db := client.Database("testahorcado")
 	fmt.Println("Successfully connected and pinged.")
 	return db
 }

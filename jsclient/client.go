@@ -40,13 +40,15 @@ type Game struct {
 // Model is the state keeper of the app.
 type Model struct {
 	*js.Object
-	Game         *Game  `js:"game"`
-	Word         *Word  `js:"word"`
-	FoundLetters string `js:"found_letters"`
-	Input_user   string `js:"input_user"`
-	Input_word   string `js:"input_word"`
-	Status       string `js:"status"`
-	ConnOpen     bool   `js:"ws_conn"`
+	Game         *Game   `js:"game"`
+	Word         *Word   `js:"word"`
+	FoundLetters string  `js:"found_letters"`
+	Input_user   string  `js:"input_user"`
+	Input_word   string  `js:"input_word"`
+	GameData     []*Game `js:"game_data"`
+	Status       string  `js:"status"`
+	ConnOpen     bool    `js:"ws_conn"`
+	BidiMessages []*Game `js:"bidi_messages"`
 }
 
 func main() {
@@ -59,13 +61,17 @@ func main() {
 	m.Game = &Game{}
 	m.Word = &Word{}
 	m.Input_word = ""
-	m.Input_user = ""
+	m.Input_user = "Juancete"
 	m.FoundLetters = ""
 	m.Status = ""
+	m.GameData = []*Game{}
 	m.ConnOpen = false
+	m.BidiMessages = []*Game{}
 
 	// GetGame retorna el juego
 	m.GetGame()
+	m.Connect()
+	m.Received()
 
 	// Create the VueJS viewModel using a struct pointer
 	vue.New("#app", m)
@@ -97,7 +103,6 @@ func (m *Model) GetGame() {
 		}
 
 		m.Game = msg
-		log.Println("GetGame ", m.Game)
 		m.FoundLetters = help.ShowWord(m.Game.Word, m.Game.Encontrados)
 	}()
 }
@@ -130,7 +135,7 @@ func (m *Model) Close() {
 func getStreamMessage(msg string) *Game {
 	rObj, err := json.Unmarshal(msg)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
 	// The actual message is wrapped in a "result" key,
@@ -171,18 +176,27 @@ func (m *Model) Send() {
 		panic(err)
 	}
 
+	m.Received()
+}
+
+func (m *Model) Received() {
 	buf := make([]byte, 1024)
 	// Wrap call in goroutine to use blocking code
 	go func() {
 		// Blocks until a WebSocket frame is received
-		n, err := WSConn.Read(buf)
-		if err != nil {
-			panic(err)
+		for m.ConnOpen {
+			n, err := WSConn.Read(buf)
+			if err != nil {
+				panic(err.Error())
+			}
+
+			game := getStreamMessage(string(buf[:n]))
+			log.Println("game .", game.UserSend)
+			m.Status = game.Error
+			m.FoundLetters = help.ShowWord(game.Word, game.Encontrados)
+			m.Input_word = ""
+			m.GameData = append(m.GameData, game)
 		}
 
-		result := getStreamMessage(string(buf[:n]))
-		m.FoundLetters = help.ShowWord(result.Word, result.Encontrados)
-		m.Status = result.Error
-		m.Input_word = ""
 	}()
 }

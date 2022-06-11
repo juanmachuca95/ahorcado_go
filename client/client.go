@@ -9,11 +9,12 @@ import (
 	"strings"
 
 	"github.com/juanmachuca95/ahorcado_go/frames"
-	"github.com/juanmachuca95/ahorcado_go/generated"
+	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 	"github.com/pterm/pterm"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var tls bool
@@ -40,7 +41,7 @@ func main() {
 	defer conn.Close()
 
 	/* Ahorcado Client gRPC Go */
-	client := generated.NewAhorcadoClient(conn)
+	client := ah.NewAhorcadoClient(conn)
 
 	Header()
 	var leaveGame bool = false
@@ -50,7 +51,7 @@ func main() {
 	/* Inside Stream */
 	var input string
 	var finded bool = false
-	var inGame generated.Game
+	var inGame ah.Game
 	var activateStream bool = false
 	var tries int = 6
 	pterm.Print("\n")
@@ -118,7 +119,7 @@ func main() {
 					fmt.Scan(&input)
 					input = strings.ToTitle(input)
 
-					req := &generated.Word{
+					req := &ah.Word{
 						GameId: inGame.Id,
 						Word:   input,
 						User:   myUser,
@@ -194,7 +195,7 @@ func Panel() {
 	_ = pterm.DefaultPanel.WithPanels(panels).Render()
 }
 
-func GameWin(inGame *generated.Game, myUser string) {
+func GameWin(inGame *ah.Game, myUser string) {
 	if myUser == inGame.Winner {
 		panel := pterm.DefaultBox.WithTitle("🎉 Has Ganado! 🎉").Sprint("\nFelicidades 🏆", inGame.Winner, "\nLa palabra era: 💀 ", inGame.Word)
 
@@ -208,7 +209,7 @@ func GameWin(inGame *generated.Game, myUser string) {
 	}
 }
 
-func ShowInfo(inGame *generated.Game, tries int) {
+func ShowInfo(inGame *ah.Game, tries int) {
 	pterm.Println()
 
 	var status string
@@ -224,8 +225,8 @@ func ShowInfo(inGame *generated.Game, tries int) {
 	pterm.Println()
 }
 
-func GetRandomGame(client generated.AhorcadoClient) (*generated.Game, error) {
-	game, err := client.GetRandomGame(context.Background(), &generated.Empty{})
+func GetRandomGame(client ah.AhorcadoClient) (*ah.Game, error) {
+	game, err := client.GetRandomGame(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		log.Fatal(err.Error())
 		return game, err
@@ -234,7 +235,7 @@ func GetRandomGame(client generated.AhorcadoClient) (*generated.Game, error) {
 	return game, nil
 }
 
-func GetRanking(client generated.AhorcadoClient) {
+func GetRanking(client ah.AhorcadoClient) {
 	log.Println("Función no programada")
 }
 
