@@ -2,7 +2,6 @@ package game
 
 import (
 	"io"
-	"log"
 
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 )
@@ -20,7 +19,6 @@ func NewConnectionGame(conn ah.Ahorcado_AhorcadoServer) *Connection {
 		quit: make(chan struct{}),
 	}
 
-	log.Println("Nueva conexión")
 	go c.start()
 	return &c
 }
@@ -44,7 +42,6 @@ func (c *Connection) start() {
 	for running {
 		select {
 		case msg := <-c.send:
-			log.Println("Enviando a conn ", msg.WordSend, " USUARIO ", msg.UserSend)
 			c.conn.Send(msg) // Ignoring the error, they just don't get this message.
 		case <-c.quit:
 			running = false

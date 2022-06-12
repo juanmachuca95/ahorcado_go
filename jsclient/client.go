@@ -5,7 +5,6 @@ package main
 //go:generate bash -c "rm clientjs/html/*.js*"
 
 import (
-	"log"
 	"net"
 
 	"github.com/gopherjs/gopherjs/js"
@@ -35,20 +34,31 @@ type Game struct {
 	Error       string   `js:"error"`
 	UserSend    string   `js:"user_send"`
 	WordSend    string   `js:"word_send"`
+	Status      string   `js:"status"`
+	// Usuario
+	Username string `js:"username"`
 }
 
 // Model is the state keeper of the app.
 type Model struct {
 	*js.Object
-	Game         *Game   `js:"game"`
-	Word         *Word   `js:"word"`
+
+	// Websocket
+	ConnOpen bool `js:"ws_conn"`
+
+	// Inputs
+	InputWord string `js:"input_word"`
+	InputUser string `js:"input_user"`
+
+	// Game
+	Username     string  `js:"username"`
 	FoundLetters string  `js:"found_letters"`
-	Input_user   string  `js:"input_user"`
-	Input_word   string  `js:"input_word"`
 	GameData     []*Game `js:"game_data"`
-	Status       string  `js:"status"`
-	ConnOpen     bool    `js:"ws_conn"`
 	BidiMessages []*Game `js:"bidi_messages"`
+	Status       string  `js:"status"`
+	Word         *Word   `js:"word"`
+	Game         *Game   `js:"game"`
+	Tries        int     `js:"tries"`
 }
 
 func main() {
@@ -60,13 +70,16 @@ func main() {
 	// so that the values can be mirrored into the internal JS Object.
 	m.Game = &Game{}
 	m.Word = &Word{}
-	m.Input_word = ""
-	m.Input_user = "Juancete"
-	m.FoundLetters = ""
+
+	m.Username = ""
 	m.Status = ""
+	m.FoundLetters = ""
 	m.GameData = []*Game{}
 	m.ConnOpen = false
-	m.BidiMessages = []*Game{}
+	m.Tries = 6
+
+	m.InputWord = ""
+	m.InputUser = ""
 
 	// GetGame retorna el juego
 	m.GetGame()
@@ -80,10 +93,7 @@ func main() {
 func (m *Model) GetGame() {
 	req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/game")
 	req.SetRequestHeader("Content-Type", "application/json")
-
-	// Wrap call in goroutine to use blocking code
 	go func() {
-		// Blocks until reply received
 		err := req.Send(nil)
 		if err != nil {
 			panic(err)
@@ -108,9 +118,7 @@ func (m *Model) GetGame() {
 }
 
 func (m *Model) Connect() {
-	// Wrap call in goroutine to use blocking code
 	go func() {
-		// Blocks until connection is established
 		var err error
 		WSConn, err = websocket.Dial("ws://localhost:8090/api/v1/playing")
 		if err != nil {
@@ -138,9 +146,6 @@ func getStreamMessage(msg string) *Game {
 		panic(err.Error())
 	}
 
-	// The actual message is wrapped in a "result" key,
-	// and there might be an error returned as well.
-	// See https://github.com/grpc-ecosystem/grpc-gateway/blob/b75dbe36289963caa453a924bd92ddf68c3f2a62/runtime/handler.go#L163
 	aux := &struct {
 		*js.Object
 		msg *Game `js:"result"`
@@ -148,8 +153,6 @@ func getStreamMessage(msg string) *Game {
 		Object: rObj,
 	}
 
-	// The most reliable way I've found to check whether
-	// an error was returned.
 	if rObj.Get("error").Bool() {
 		panic(msg)
 	}
@@ -158,13 +161,11 @@ func getStreamMessage(msg string) *Game {
 }
 
 func (m *Model) Send() {
-	msg := &Word{
-		Object: js.Global.Get("Object").New(),
-	}
+	msg := &Word{Object: js.Global.Get("Object").New()}
 
 	msg.Game_id = m.Game.Id
-	msg.Word = m.Input_word
-	msg.User = m.Input_user
+	msg.Word = m.InputWord
+	msg.User = m.Username
 
 	s, err := json.Marshal(msg.Object)
 	if err != nil {
@@ -191,12 +192,34 @@ func (m *Model) Received() {
 			}
 
 			game := getStreamMessage(string(buf[:n]))
-			log.Println("game .", game.UserSend)
-			m.Status = game.Error
+			m.Status = game.Status
 			m.FoundLetters = help.ShowWord(game.Word, game.Encontrados)
-			m.Input_word = ""
 			m.GameData = append(m.GameData, game)
+			m.InputWord = ""
+
 		}
 
 	}()
+}
+
+func (m *Model) SetUsername() {
+	m.Username = m.InputUser
+	m.InputUser = ""
+}
+
+func (m *Model) Reset() {
+	m.Username = ""
+
+	// Inputs
+	m.InputUser = ""
+	m.InputWord = ""
+
+	// Game
+	m.Status = ""
+	m.Game = &Game{}
+	m.Word = &Word{}
+	m.ConnOpen = false
+	m.FoundLetters = ""
+	m.Tries = 6
+
 }

@@ -5,47 +5,109 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://kit.fontawesome.com/3b9095d4bc.js" crossorigin="anonymous"></script>
 	<!-- Bootstrap CSS -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
-	<title>gRPC</title>
+	<title>Ahorcado - Death By Hanging</title>
+	<style>
+		div.scroll {
+			margin:4px, 4px;
+			padding:4px;
+			width: 500px;
+			height: 300px;
+			overflow-x: hidden;
+			overflow-y: auto;
+			text-align:justify;
+		}
+	</style>
 </head>
 
 <body>
 	<div id="app" v-cloak>
 		<div class="container bg-light">
-			<div class="row vh-100 align-items-center">
+			<div class="row align-items-center" style="height: 80vh;">
 				<div class="col-md-6">
 					<div class="text-center">
-						<h1 class="p-3">💀 Ahorcado</h1>
+						<h1 class="pt-3 pb-0">💀 Ahorcado</h1>
+						<small>by juanmachuca95</small>
+						<h5 class="pt-3">Tienes hasta ({{ tries }}) fallos.</h5>
 
-						<div class="p-3" v-if="game">
-							<h2 style="letter-spacing:10px;">
+						<div class="p-3" v-if="!username">
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="floatingInput"
+									placeholder="Ingresa tu nombre de usuario" v-model="input_user">
+								<label for="floatingInput">Nombre de usuario</label>
+							</div>
+							<button type="button" class="block btn btn-outline-warning text-dark btn-lg form-control"
+								@click="SetUsername()">Jugar 🚀</button>
+						</div>
+
+						<div class="p-3" v-if="username">
+							<h2 class="p-3" style="letter-spacing:10px;">
 								🔒{{ found_letters }}
 							</h2>
 							<p v-if="status">{{ status }}</p>
+							<div class="flex" v-if="game">
+								<div class="form-floating mb-3">
+									<input type="text" v-model="input_word" class="form-control" id="floatingInput"
+										placeholder="Ingresa tu nombre de usuario">
+									<label for="floatingInput">Palabra o letra</label>
+								</div>
+								<button type="button"
+									class="block btn btn-outline-warning text-dark btn-lg form-control"
+									@click="Send()">Palabra o letra 🖊️</button>
+							</div>
 						</div>
-						<div class="flex" v-if="ws_conn">
-							<input class="form" v-model="input_word" type="text">
-							<button class="btn btn-primary text-uppercase" @click="Send()">Send</button>
-						</div>
+
 					</div>
 				</div>
-				<div class="col-md-6">
-					<p>History: </p>
-					<ul>
-						<li v-for="item in game_data">
-							✍️ - {{ item.userSend }} - Ha jugado - {{ item.wordSend }}
-						</li>
-					</ul>
+				<div class="col-md-6" v-if="username">
+					<small>Mi user - {{ username }}</small>
+					<p class="font-light"> Historial de jugadas </p>
+					<div class="scroll">
+						<ul>
+							<li v-for="item in game_data.slice().reverse()">
+								✍️ - {{ item.userSend }} - Ha jugado - {{ item.wordSend }}
+							</li>
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>
-
 	</div>
 
 
+	<div class="container">
+		<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+			<div class="col-md-6 d-flex align-items-center">
+				<span class="text-muted">
+					<small>
+						Copyright © 2022 by Juan Gabriel Machuca. All rights reserved.
+					</small> 
+				</span>
+			</div>
+
+			<ul class="nav col-md-6 justify-content-end list-unstyled d-flex">
+				<li class="ms-3">
+					<a class="text-muted" href="https://www.linkedin.com/in/juan-gabriel-machuca-a68289196/">
+						<i class="fab fa-linkedin fa-lg"></i>
+					</a>
+				</li>
+				<li class="ms-3">
+					<a class="text-muted" href="#">
+						<i class="fab fa-github fa-lg"></i>
+					</a>
+				</li>
+				<li class="ms-3">
+					<a class="text-muted" href="#">
+						<i class="fab fa-instagram fa-lg"></i>
+					</a>
+				</li>
+			</ul>
+		</footer>
+	</div>
 	<script src="index.js"></script>
 	<!-- Option 1: Bootstrap Bundle with Popper -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"

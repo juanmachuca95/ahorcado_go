@@ -17,9 +17,10 @@ message Game {
     string winner = 3;
     repeated string encontrados = 4;
     bool finalizada = 5;
-    string error = 6;
-    string user_send = 7;
-    string word_send = 8;
+    string status = 6;
+    string error = 7;
+    string user_send = 8;
+    string word_send = 9;
 }
 
 service Ahorcado {

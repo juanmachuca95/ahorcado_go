@@ -96,15 +96,15 @@ func (s *GameService) getGame(gameId string) (*m.Game, error) {
 }
 
 func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
-	log.Println("HOLA CHE --> word", word, " --> user ", user, " -- game id", id)
 	game, err := s.getGame(id)
 	if err != nil {
 		return &m.Game{}, errors.New("El juego ha finalizado o no está disponible.")
 	}
 
 	if helpers.AlreadyFound(word, game.Encontrados) { // letra ya encontrada
-		messageError := fmt.Sprintf("La letra %v ya figura en la lista de encontrados 👎", word)
-		return game, errors.New(messageError)
+		messageStatus := fmt.Sprintf("La letra %v ya figura en la lista de encontrados 👎", word)
+		game.Status = messageStatus
+		return game, nil
 	}
 
 	if game.Word == word { // El usuario ingresa una palabra y la palabra coincide
@@ -114,13 +114,15 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 			return game, err
 		}
 
+		game.Status = "¡Has encontrado la palabra!, 🥳"
 		game.Finalizada = true
 		return game, nil
 	}
 
 	if !strings.Contains(game.Word, word) { // La letra ingresada por el usuario coincide con una letra en la palabra del juego
-		errorMessage := fmt.Sprintf("La letra o palabra ingresada (%s) no existe 👎, -1 intentos.", word)
-		return game, errors.New(errorMessage)
+		messageStatus := fmt.Sprintf("La letra o palabra ingresada (%s) no existe 👎, -1 intentos.", word)
+		game.Status = messageStatus
+		return game, nil
 	}
 
 	log.Println("4. La palabra ingresada coincide con una letra de la palabra del juego")
@@ -128,10 +130,12 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 	if helpers.Win(game.Word, game.Encontrados) { // si es la última letra para encontrar
 		ok, err := s.UpdateWinner(word, user, *game)
 		if !ok {
-			messageError := fmt.Sprintf("No fue posible actualizar el Game - error: %v", err.Error())
-			return game, errors.New(messageError)
+			messageStatus := fmt.Sprintf("No fue posible actualizar el Game - error: %v", err.Error())
+			game.Status = messageStatus
+			return game, nil
 		}
 
+		game.Status = "¡Has encontrado la última letra!, 🥳"
 		game.Finalizada = true
 		return game, nil
 	}
@@ -140,8 +144,10 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 	_, err = s.UpdateEncontrados(game.Encontrados, game.Id.Hex())
 	if err != nil {
 		log.Fatal("No fue posible actualizar las letras encontradas - error: ", err)
+		return nil, err
 	}
 
+	game.Status = "¡Has encontrado una letra!"
 	return game, nil
 }
 

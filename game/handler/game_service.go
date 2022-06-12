@@ -33,11 +33,17 @@ func NewGameService(db *mongo.Database) *GameService {
 
 func (g *GameService) Start() {
 	running := true
+	var msgErr string = ""
 	for running {
 		select {
 		case msg := <-g.broadcast:
 			g.connLock.Lock()
-			game, _ := g.gmGtw.InGame(msg.Word, msg.User, msg.GameId) // GetGame Service
+			game, err := g.gmGtw.InGame(msg.Word, msg.User, msg.GameId) // GetGame Service
+			if err != nil {
+				msgErr = err.Error()
+			} else {
+				msgErr = ""
+			}
 
 			gameToSend := ah.Game{
 				Id:          game.Id.Hex(),
@@ -47,7 +53,8 @@ func (g *GameService) Start() {
 				Finalizada:  game.Finalizada,
 				UserSend:    msg.User,
 				WordSend:    msg.Word,
-				Error:       "Error",
+				Status:      msg.User + " - " + game.Status,
+				Error:       msgErr,
 			}
 			for _, v := range g.connections {
 				log.Println("Enviando . . . ")
@@ -95,5 +102,6 @@ func (g *GameService) GetRandomGame(ctx context.Context, req *emptypb.Empty) (*a
 		Winner:      game.Winner,
 		Encontrados: game.Encontrados,
 		Finalizada:  game.Finalizada,
+		Status:      game.Status,
 	}, nil
 }
