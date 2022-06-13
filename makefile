@@ -13,3 +13,16 @@ gen-grpc-gateway:
 	
 clean-grpc-gateway:
 	rm -rf protos/ahorcado/*.pb.gw.go
+
+compile-go-js:
+	gopherjs build --minify jsclient/client.go -o jsclient/html/index.js
+
+setup-site-github:
+	cp jsclient/html/index.html ./docs 
+	cp jsclient/html/index.js ./docs 
+
+clean-site-github:
+	rm -rf docs/*
+
+up-server:
+	go run server/server.go

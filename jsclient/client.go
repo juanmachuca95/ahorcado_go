@@ -54,11 +54,15 @@ type Model struct {
 	Username     string  `js:"username"`
 	FoundLetters string  `js:"found_letters"`
 	GameData     []*Game `js:"game_data"`
-	BidiMessages []*Game `js:"bidi_messages"`
-	Status       string  `js:"status"`
-	Word         *Word   `js:"word"`
-	Game         *Game   `js:"game"`
-	Tries        int     `js:"tries"`
+
+	// outputs
+	Winner string `js:"winner"`
+	Status string `js:"status"`
+	Error  string `js:"error"`
+
+	Word  *Word `js:"word"`
+	Game  *Game `js:"game"`
+	Tries int   `js:"tries"`
 }
 
 func main() {
@@ -73,7 +77,9 @@ func main() {
 
 	m.Username = ""
 	m.Status = ""
+	m.Error = ""
 	m.FoundLetters = ""
+	m.Winner = ""
 	m.GameData = []*Game{}
 	m.ConnOpen = false
 	m.Tries = 6
@@ -100,12 +106,14 @@ func (m *Model) GetGame() {
 		}
 
 		if req.Status != 200 {
-			panic(req.ResponseText)
+			m.Error = "No hay juegos disponibles."
+			return
 		}
 
 		rObj, err := json.Unmarshal(req.ResponseText)
 		if err != nil {
-			panic(err)
+			m.Error = err.Error()
+			return
 		}
 
 		msg := &Game{
@@ -197,6 +205,11 @@ func (m *Model) Received() {
 			m.GameData = append(m.GameData, game)
 			m.InputWord = ""
 
+			if m.Game.Finalizada {
+				m.Winner = "🏆 " + game.Winner + " - Ha ganado el juego"
+				m.Reset()
+			}
+
 		}
 
 	}()
@@ -216,6 +229,8 @@ func (m *Model) Reset() {
 
 	// Game
 	m.Status = ""
+	m.Error = ""
+	m.Winner = ""
 	m.Game = &Game{}
 	m.Word = &Word{}
 	m.ConnOpen = false
