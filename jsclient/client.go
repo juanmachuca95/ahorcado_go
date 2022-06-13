@@ -6,6 +6,7 @@ package main
 
 import (
 	"net"
+	"strings"
 
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket"
@@ -172,7 +173,7 @@ func (m *Model) Send() {
 	msg := &Word{Object: js.Global.Get("Object").New()}
 
 	msg.Game_id = m.Game.Id
-	msg.Word = m.InputWord
+	msg.Word = strings.ToUpper(m.InputWord)
 	msg.User = m.Username
 
 	s, err := json.Marshal(msg.Object)
