@@ -8,7 +8,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/juanmachuca95/ahorcado_go/frames"
+	"github.com/juanmachuca95/ahorcado_go/pkg/frames"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 	"github.com/pterm/pterm"
 	"go.mongodb.org/mongo-driver/mongo"

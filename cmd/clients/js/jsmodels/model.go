@@ -35,6 +35,7 @@ type Model struct {
 	InputUser string `js:"input_user"`
 
 	// Game
+	Jugando      bool    `js:"jugando"`
 	FoundLetters string  `js:"found_letters"`
 	GameData     []*Game `js:"game_data"`
 
@@ -118,13 +119,25 @@ func (m *Model) Register() {
 		if m.Token != "" {
 			m.Username = ""
 			m.Password = ""
+			m.GetGame()
 		}
 	}()
+}
+
+func (m *Model) Jugar() {
+	if m.Token == "" {
+		m.Error = "Ups! Parece que hoy no será posible jugar, lo sentimos."
+		return
+	}
+
+	m.Jugando = true
+	m.GetGame()
 }
 
 func (m *Model) GetGame() {
 	req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/game")
 	req.SetRequestHeader("Content-Type", "application/json")
+	req.SetRequestHeader("Authorization", m.Token)
 
 	go func() {
 		err := req.Send(nil)

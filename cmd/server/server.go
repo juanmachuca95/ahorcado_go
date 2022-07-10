@@ -29,7 +29,6 @@ var (
 )
 
 func main() {
-	/* Mis variables de entorno */
 	LoadEnv()
 
 	addr := fmt.Sprintf("0.0.0.0:%s", os.Getenv("SERVER_PORT"))
@@ -40,7 +39,6 @@ func main() {
 
 	// Database
 	db := database.Connect()
-
 	// Services
 	authServ := handler.NewAuthService(db)
 	gameServ := handler.NewGameService(db)
@@ -52,14 +50,14 @@ func main() {
 		grpc.StreamInterceptor(authInterceptor.StreamInterceptor()),
 	)
 
-	/* Registro de servicios */
-	ah.RegisterAhorcadoServer(serv, gameServ) // Register Services Cliente
+	// Registro de servicios
+	ah.RegisterAhorcadoServer(serv, gameServ)
 	au.RegisterAuthServer(serv, authServ)
 
-	/* Enable reflection */
+	// Enable reflection
 	reflection.Register(serv)
-	// Serve gRPC server
 
+	// Serve gRPC server
 	log.Println("Serving gRPC on 0.0.0.0:8080")
 	go func() {
 		log.Fatalln(serv.Serve(listener))
@@ -76,18 +74,15 @@ func main() {
 	}
 
 	gwmux := runtime.NewServeMux()
-
 	// Register AhorcadoHandler
-	err = ah.RegisterAhorcadoHandler(context.Background(), gwmux, conn)
-	if err != nil {
+	if err := ah.RegisterAhorcadoHandler(context.Background(), gwmux, conn); err != nil {
 		log.Fatalln("Failed to register gateway:", err)
 	}
-	err = au.RegisterAuthHandler(context.Background(), gwmux, conn)
-	if err != nil {
+	if err := au.RegisterAuthHandler(context.Background(), gwmux, conn); err != nil {
 		log.Fatalln("Failed to register gateway:", err)
 	}
 
-	handler := cors.Default().Handler(wsproxy.WebsocketProxy(gwmux))
+	handler := cors.AllowAll().Handler(wsproxy.WebsocketProxy(gwmux))
 	gwServer := &http.Server{
 		Addr:    ":8090",
 		Handler: handler,

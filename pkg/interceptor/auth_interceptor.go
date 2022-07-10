@@ -32,6 +32,7 @@ func (a *AuthInterceptor) UnaryInterceptor() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 
+		//log.Println("--> unary interceptor: ", info.FullMethod)
 		if err := a.authorize(ctx, info.FullMethod); err != nil {
 			return nil, err
 		}
@@ -42,6 +43,7 @@ func (a *AuthInterceptor) UnaryInterceptor() grpc.UnaryServerInterceptor {
 func (a *AuthInterceptor) StreamInterceptor() grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 
+		//log.Println("--> stream interceptor: ", info.FullMethod)
 		if err := a.authorize(ss.Context(), info.FullMethod); err != nil {
 			return err
 		}
@@ -83,10 +85,9 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 }
 
 func accessibleRoles() map[string][]string {
-	const gameServicePath = "/game.Ahorcado/"
+	const gameServicePath = "/protos.Ahorcado/"
 
 	return map[string][]string{
-
-		gameServicePath + "GetRandomGame": {"user"},
+		gameServicePath + "GetRandomGame": {"player"},
 	}
 }

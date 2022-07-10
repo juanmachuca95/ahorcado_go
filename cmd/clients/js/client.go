@@ -43,6 +43,9 @@ func main() {
 	m.InputWord = ""
 	m.InputUser = ""
 
+	// Game
+	m.Jugando = false
+
 	// GetGame retorna el juego
 	// m.GetGame()
 	// m.Connect()
