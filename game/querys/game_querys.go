@@ -1,9 +1,21 @@
-package game
+package querys
 
 import (
+	"github.com/bxcodec/faker/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+var CreateGames = func() []interface{} {
+	var docs []interface{}
+
+	for i := 0; i < 100; i++ {
+		l := bson.D{{"word", faker.Word}, {"winner", ""}, {"finalizada", false}, {"ingame", false}, {"encontrados", nil}}
+		docs = append(docs, l)
+	}
+
+	return docs
+}
 
 var GetGame = func(id primitive.ObjectID, finalizada bool) interface{} {
 	return &bson.M{

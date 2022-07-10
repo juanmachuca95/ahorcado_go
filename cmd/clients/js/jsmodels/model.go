@@ -1,8 +1,4 @@
-package main
-
-//go:generate gopherjs build -m jsclient/client.go -o jsclient/html/index.js
-//go:generate go-bindata -pkg compiled -nometadata -o jsclient/compiled/client.go -prefix html ./jsclient/html
-//go:generate bash -c "rm clientjs/html/*.js*"
+package jsmodels
 
 import (
 	"net"
@@ -11,36 +7,12 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket"
 	json "github.com/johanbrandhorst/gopherjs-json"
-	help "github.com/juanmachuca95/ahorcado_go/helpers"
-	vue "github.com/oskca/gopherjs-vue"
+	help "github.com/juanmachuca95/ahorcado_go/pkg/helpers"
 	"honnef.co/go/js/xhr"
 )
 
 var WSConn net.Conn
 
-type Word struct {
-	*js.Object
-	Game_id string `js:"game_id"`
-	Word    string `js:"word"`
-	User    string `js:"user"`
-}
-
-type Game struct {
-	*js.Object
-	Id          string   `js:"id"`
-	Word        string   `js:"word"`
-	Winner      string   `js:"winner"`
-	Encontrados []string `js:"encontrados"`
-	Finalizada  bool     `js:"finalizada"`
-	Error       string   `js:"error"`
-	UserSend    string   `js:"user_send"`
-	WordSend    string   `js:"word_send"`
-	Status      string   `js:"status"`
-	// Usuario
-	Username string `js:"username"`
-}
-
-// Model is the state keeper of the app.
 type Model struct {
 	*js.Object
 
@@ -64,37 +36,6 @@ type Model struct {
 	Word  *Word `js:"word"`
 	Game  *Game `js:"game"`
 	Tries int   `js:"tries"`
-}
-
-func main() {
-	m := &Model{
-		Object: js.Global.Get("Object").New(),
-	}
-
-	// These must be set after the struct has been initialised
-	// so that the values can be mirrored into the internal JS Object.
-	m.Game = &Game{}
-	m.Word = &Word{}
-
-	m.Username = ""
-	m.Status = ""
-	m.Error = ""
-	m.FoundLetters = ""
-	m.Winner = ""
-	m.GameData = []*Game{}
-	m.ConnOpen = false
-	m.Tries = 6
-
-	m.InputWord = ""
-	m.InputUser = ""
-
-	// GetGame retorna el juego
-	m.GetGame()
-	m.Connect()
-	m.Received()
-
-	// Create the VueJS viewModel using a struct pointer
-	vue.New("#app", m)
 }
 
 func (m *Model) GetGame() {

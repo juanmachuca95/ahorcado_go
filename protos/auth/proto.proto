@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package protos;
+option go_package = "github.com/juanmachuca95/ahorcado_go/protos/auth/v1";
+import "google/api/annotations.proto";
+
+
+message RequestLogin {
+    string username = 1;
+    string password = 2;
+}
+
+message ResponseLogin {
+    string token = 1;
+}
+
+service Auth {
+    rpc Login (RequestLogin) returns (ResponseLogin){
+        option (google.api.http) = {
+            get: "/api/v1/login" 
+        };
+    };
+    
+    rpc Register (RequestLogin) returns (ResponseLogin){
+        option (google.api.http) = {
+            get: "/api/v1/register"
+        };
+    };
+}

@@ -3,6 +3,8 @@ module github.com/juanmachuca95/ahorcado_go
 go 1.18
 
 require (
+	github.com/bxcodec/faker/v3 v3.8.0
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/protobuf v1.5.2
 	github.com/gopherjs/gopherjs v1.17.2
 	github.com/gopherjs/websocket v0.0.0-20191103002815-9a42957e2b3a

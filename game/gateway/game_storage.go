@@ -1,4 +1,4 @@
-package game
+package gateway
 
 import (
 	"context"
@@ -9,18 +9,19 @@ import (
 
 	m "github.com/juanmachuca95/ahorcado_go/game/models"
 	q "github.com/juanmachuca95/ahorcado_go/game/querys"
-	helpers "github.com/juanmachuca95/ahorcado_go/helpers"
+	helpers "github.com/juanmachuca95/ahorcado_go/pkg/helpers"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var collection = "game"
+const collectionGame = "game"
 
 type GameStorage interface {
 	getRandomGame() (*m.Game, error)
 	getGame(string) (*m.Game, error)
 	inGame(word, user, id string) (*m.Game, error)
+	createGames() (bool, error)
 }
 
 type GameService struct {
@@ -31,9 +32,21 @@ func NewGameStorageGateway(db *mongo.Database) GameStorage {
 	return &GameService{db}
 }
 
+func (s *GameService) createGames() (bool, error) {
+	coll := s.Collection(collectionGame)
+	docs := q.CreateGames()
+
+	_, err := coll.InsertMany(context.TODO(), docs)
+	if err != nil {
+		panic(err)
+	}
+
+	return true, nil
+}
+
 func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
 	pipeline := q.GetRandomGameToSet()
-	cursor, err := s.Collection(collection).Aggregate(context.Background(), pipeline)
+	cursor, err := s.Collection(collectionGame).Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return &m.Game{}, err
 	}
@@ -50,12 +63,12 @@ func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
 		return &game, nil
 	}
 
-	return &m.Game{}, errors.New("No hemos obtenido un getRandomGameToSet")
+	return &m.Game{}, errors.New("no hemos obtenido un getRandomGameToSet")
 }
 
 func (s *GameService) getRandomGame() (*m.Game, error) {
 	pipeline := q.GetRandomGame()
-	cursor, err := s.Collection(collection).Aggregate(context.Background(), pipeline)
+	cursor, err := s.Collection(collectionGame).Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return &m.Game{
 			Encontrados: []string{},
@@ -75,11 +88,11 @@ func (s *GameService) getRandomGame() (*m.Game, error) {
 		return &game, nil
 	}
 
-	return &game, errors.New("No hay juegos disponibles.")
+	return &game, errors.New("no hay juegos disponibles")
 }
 
 func (s *GameService) getGame(gameId string) (*m.Game, error) {
-	collection := s.Collection(collection)
+	collection := s.Collection(collectionGame)
 	objID, _ := primitive.ObjectIDFromHex(gameId)
 
 	var game m.Game
@@ -98,7 +111,7 @@ func (s *GameService) getGame(gameId string) (*m.Game, error) {
 func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 	game, err := s.getGame(id)
 	if err != nil {
-		return &m.Game{}, errors.New("El juego ha finalizado o no está disponible.")
+		return &m.Game{}, errors.New("el juego ha finalizado o no está disponible")
 	}
 
 	if helpers.AlreadyFound(word, game.Encontrados) { // letra ya encontrada
@@ -152,7 +165,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 }
 
 func (s *GameService) UpdateWinner(word, user string, game m.Game) (bool, error) {
-	collection := s.Collection(collection)
+	collection := s.Collection(collectionGame)
 	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
@@ -181,7 +194,7 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) (bool, error)
 }
 
 func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bool, error) {
-	collection := s.Collection(collection)
+	collection := s.Collection(collectionGame)
 	objID, err := primitive.ObjectIDFromHex(gameId)
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
@@ -206,10 +219,10 @@ func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bo
 }
 
 func (s *GameService) UpdateGame() (bool, error) {
-	collection := s.Collection(collection)
+	collection := s.Collection(collectionGame)
 	game, err := s.GetRandomGameToSet() // Obtengo un random game
 	if err != nil {
-		return false, errors.New("No se ha podido establecer un nuevo game")
+		return false, errors.New("no se ha podido establecer un nuevo game")
 	}
 
 	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())

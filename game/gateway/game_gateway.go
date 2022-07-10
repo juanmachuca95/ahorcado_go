@@ -1,4 +1,4 @@
-package game
+package gateway
 
 import (
 	m "github.com/juanmachuca95/ahorcado_go/game/models"
@@ -13,6 +13,7 @@ type GameGateway interface {
 	MyGame(*generated.Word) (generated.Game, error)
 	SeedWords() bool
 	UpdateGame() (bool, error) */
+	CreateGames() (bool, error)
 }
 
 type GameInDB struct {
@@ -21,6 +22,10 @@ type GameInDB struct {
 
 func NewGameGateway(db *mongo.Database) GameGateway {
 	return &GameInDB{NewGameStorageGateway(db)}
+}
+
+func (g *GameInDB) CreateGames() (bool, error) {
+	return g.createGames()
 }
 
 func (g *GameInDB) GetRandomGame() (*m.Game, error) {

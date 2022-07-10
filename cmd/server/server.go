@@ -10,9 +10,12 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
-	gmService "github.com/juanmachuca95/ahorcado_go/game/handler"
-	database "github.com/juanmachuca95/ahorcado_go/internal/database/mongo"
+	"github.com/juanmachuca95/ahorcado_go/game/handler"
+	database "github.com/juanmachuca95/ahorcado_go/pkg/database/mongo"
+	"github.com/juanmachuca95/ahorcado_go/pkg/interceptor"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
+	au "github.com/juanmachuca95/ahorcado_go/protos/auth"
+
 	"github.com/rs/cors"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	"google.golang.org/grpc"
@@ -38,13 +41,20 @@ func main() {
 	// Database
 	db := database.Connect()
 
-	// Service
-	game := gmService.NewGameService(db)
-	var opts []grpc.ServerOption
-	serv := grpc.NewServer(opts...)
+	// Services
+	authServ := handler.NewAuthService(db)
+	gameServ := handler.NewGameService(db)
+
+	// Middleware
+	authInterceptor := interceptor.NewAuthInterceptor()
+	serv := grpc.NewServer(
+		grpc.UnaryInterceptor(authInterceptor.UnaryInterceptor()),
+		grpc.StreamInterceptor(authInterceptor.StreamInterceptor()),
+	)
 
 	/* Registro de servicios */
-	ah.RegisterAhorcadoServer(serv, game) // Register Services Cliente
+	ah.RegisterAhorcadoServer(serv, gameServ) // Register Services Cliente
+	au.RegisterAuthServer(serv, authServ)
 
 	/* Enable reflection */
 	reflection.Register(serv)
@@ -69,6 +79,10 @@ func main() {
 
 	// Register AhorcadoHandler
 	err = ah.RegisterAhorcadoHandler(context.Background(), gwmux, conn)
+	if err != nil {
+		log.Fatalln("Failed to register gateway:", err)
+	}
+	err = au.RegisterAuthHandler(context.Background(), gwmux, conn)
 	if err != nil {
 		log.Fatalln("Failed to register gateway:", err)
 	}
