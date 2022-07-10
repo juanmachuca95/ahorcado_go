@@ -22,7 +22,16 @@ func main() {
 	m.Game = &jsmodels.Game{}
 	m.Word = &jsmodels.Word{}
 
+	// Login
+	m.LoginUser = true
 	m.Username = ""
+	m.Password = ""
+	m.Token = ""
+	m.ErrorLogin = ""
+
+	// Register
+	m.RegisterUser = false
+	m.ErrorRegister = ""
 	m.Status = ""
 	m.Error = ""
 	m.FoundLetters = ""
@@ -35,9 +44,9 @@ func main() {
 	m.InputUser = ""
 
 	// GetGame retorna el juego
-	m.GetGame()
-	m.Connect()
-	m.Received()
+	// m.GetGame()
+	// m.Connect()
+	// m.Received()
 
 	// Create the VueJS viewModel using a struct pointer
 	vue.New("#app", m)

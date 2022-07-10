@@ -13,6 +13,4 @@ type Game struct {
 	UserSend    string   `js:"user_send"`
 	WordSend    string   `js:"word_send"`
 	Status      string   `js:"status"`
-	// Usuario
-	Username string `js:"username"`
 }

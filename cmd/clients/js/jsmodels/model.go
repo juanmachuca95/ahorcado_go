@@ -16,6 +16,17 @@ var WSConn net.Conn
 type Model struct {
 	*js.Object
 
+	// Login
+	LoginUser  bool   `js:"login"`
+	Username   string `js:"username"`
+	Password   string `js:"password"`
+	ErrorLogin string `js:"error_login"`
+	Token      string `js:"token"`
+
+	// Register
+	RegisterUser  bool   `js:"register"`
+	ErrorRegister string `js:"error_register"`
+
 	// Websocket
 	ConnOpen bool `js:"ws_conn"`
 
@@ -24,7 +35,6 @@ type Model struct {
 	InputUser string `js:"input_user"`
 
 	// Game
-	Username     string  `js:"username"`
 	FoundLetters string  `js:"found_letters"`
 	GameData     []*Game `js:"game_data"`
 
@@ -38,9 +48,84 @@ type Model struct {
 	Tries int   `js:"tries"`
 }
 
+func (m *Model) Login() {
+	req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/login")
+	req.SetRequestHeader("Content-Type", "application/json")
+	login := &RequestLogin{Object: js.Global.Get("Object").New()}
+	login.Username = m.Username
+	login.Password = m.Password
+
+	s, err := json.Marshal(login.Object)
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		err := req.Send([]byte(s))
+		if err != nil {
+			panic(err)
+		}
+
+		rObj, err := json.Unmarshal(req.ResponseText)
+		if err != nil {
+			m.ErrorLogin = err.Error()
+			return
+		}
+
+		if req.Status != 200 {
+			m.ErrorLogin = rObj.Get("message").String()
+			return
+		}
+
+		m.Token = rObj.Get("token").String()
+		if m.Token != "" {
+			m.Username = ""
+			m.Password = ""
+		}
+	}()
+}
+
+func (m *Model) Register() {
+	req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/register")
+	req.SetRequestHeader("Content-Type", "application/json")
+	login := &RequestLogin{Object: js.Global.Get("Object").New()}
+	login.Username = m.Username
+	login.Password = m.Password
+
+	s, err := json.Marshal(login.Object)
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		err := req.Send([]byte(s))
+		if err != nil {
+			panic(err)
+		}
+
+		rObj, err := json.Unmarshal(req.ResponseText)
+		if err != nil {
+			m.ErrorRegister = err.Error()
+			return
+		}
+
+		if req.Status != 200 {
+			m.ErrorRegister = rObj.Get("message").String()
+			return
+		}
+
+		m.Token = rObj.Get("token").String()
+		if m.Token != "" {
+			m.Username = ""
+			m.Password = ""
+		}
+	}()
+}
+
 func (m *Model) GetGame() {
 	req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/game")
 	req.SetRequestHeader("Content-Type", "application/json")
+
 	go func() {
 		err := req.Send(nil)
 		if err != nil {
@@ -157,9 +242,14 @@ func (m *Model) Received() {
 	}()
 }
 
-func (m *Model) SetUsername() {
-	m.Username = m.InputUser
-	m.InputUser = ""
+func (m *Model) SetRegister() {
+	m.RegisterUser = true
+	m.LoginUser = false
+}
+
+func (m *Model) SetLogin() {
+	m.LoginUser = true
+	m.RegisterUser = false
 }
 
 func (m *Model) Reset() {

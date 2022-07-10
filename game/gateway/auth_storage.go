@@ -35,10 +35,6 @@ func (s *AuthService) login(l *models.Login) (string, error) {
 	var result models.Login
 	err := coll.FindOne(context.TODO(), filter, nil).Decode(&result)
 	if err != nil {
-		panic(err)
-	}
-
-	if result.Username == "" {
 		return "", fmt.Errorf("el username %s no existe", l.Username)
 	}
 

@@ -17,13 +17,15 @@ message ResponseLogin {
 service Auth {
     rpc Login (RequestLogin) returns (ResponseLogin){
         option (google.api.http) = {
-            get: "/api/v1/login" 
+            post: "/api/v1/login" 
+            body: "*"
         };
     };
     
     rpc Register (RequestLogin) returns (ResponseLogin){
         option (google.api.http) = {
-            get: "/api/v1/register"
+            post: "/api/v1/register"
+            body: "*"
         };
     };
 }

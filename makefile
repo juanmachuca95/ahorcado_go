@@ -16,11 +16,11 @@ clean-grpc-gateway:
 	rm -rf protos/ahorcado/*.pb.gw.go
 
 compile-go-js:
-	gopherjs build --minify jsclient/client.go -o jsclient/html/index.js
+	gopherjs build --minify cmd/clients/js/client.go -o cmd/clients/js/html/index.js
 
 setup-site-github:
-	cp jsclient/html/index.html ./docs 
-	cp jsclient/html/index.js ./docs 
+	cp cmd/clients/js/html/index.html ./docs 
+	cp cmd/clients/js/html/index.js ./docs 
 
 clean-site-github:
 	rm -rf docs/*
