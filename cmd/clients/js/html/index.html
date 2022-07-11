@@ -89,17 +89,20 @@
 					<div class="text-center">
 						<h1 class="pt-3 pb-0">💀 Ahorcado</h1>
 						<small class="text-muted">by juanmachuca95</small>
-						<h5 class="pt-3">Tienes hasta ({{ tries }}) fallos.</h5>
-
-						<a class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
-
+						<h5 class="p-3">Tienes hasta ({{ tries }}) fallos.</h5>
+						<a v-if="!jugando" class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
 						<div class="p-3" v-if="jugando">
-							<h2 class="p-3" style="letter-spacing:10px;">
-								🔒{{ found_letters }}
-							</h2>
-							<p v-if="error">{{ error }}</p>
-							<p v-if="status">{{ status }}</p>
-							<p v-if="winner">{{ winner }}</p>
+							<p class="text-danger text-center text-small" v-if="error">
+								{{ error }}
+							</p>
+
+							<div class="p-3">
+								<h2 style="letter-spacing:10px;">
+									🔒{{ found_letters }}
+								</h2>
+								<p v-if="status">{{ status }}</p>
+								<p v-if="winner">{{ winner }}</p>
+							</div>
 							<div class="flex" v-if="game">
 								<div class="form-floating mb-3">
 									<input type="text" v-model="input_word" class="form-control" id="floatingInput"

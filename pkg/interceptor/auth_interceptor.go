@@ -2,7 +2,6 @@ package interceptor
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/juanmachuca95/ahorcado_go/pkg/servicejwt"
 	"google.golang.org/grpc"
@@ -75,7 +74,6 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 	}
 
 	for _, role := range accessibleRoles {
-		fmt.Println(role, claims)
 		if role == claims.Role {
 			return nil
 		}

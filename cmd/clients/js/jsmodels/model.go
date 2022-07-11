@@ -131,6 +131,7 @@ func (m *Model) Jugar() {
 	}
 
 	m.Jugando = true
+	m.Connect()
 	m.GetGame()
 }
 
@@ -145,14 +146,14 @@ func (m *Model) GetGame() {
 			panic(err)
 		}
 
-		if req.Status != 200 {
-			m.Error = "No hay juegos disponibles."
-			return
-		}
-
 		rObj, err := json.Unmarshal(req.ResponseText)
 		if err != nil {
 			m.Error = err.Error()
+			return
+		}
+
+		if rObj.Get("code").Bool() {
+			m.Error = rObj.Get("message").String()
 			return
 		}
 
@@ -160,6 +161,7 @@ func (m *Model) GetGame() {
 			Object: rObj,
 		}
 
+		m.Error = ""
 		m.Game = msg
 		m.FoundLetters = help.ShowWord(m.Game.Word, m.Game.Encontrados)
 	}()
