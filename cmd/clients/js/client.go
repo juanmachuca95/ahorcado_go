@@ -45,6 +45,8 @@ func main() {
 
 	// Game
 	m.Jugando = false
+	m.Lost = ""
+	m.Win = ""
 
 	// GetGame retorna el juego
 	// m.GetGame()

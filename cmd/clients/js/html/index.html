@@ -90,7 +90,16 @@
 						<h1 class="pt-3 pb-0">💀 Ahorcado</h1>
 						<small class="text-muted">by juanmachuca95</small>
 						<h5 class="p-3">Tienes hasta ({{ tries }}) fallos.</h5>
-						<a v-if="!jugando" class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
+
+						<div v-if="!jugando">
+							<p v-if="lost">
+								{{ lost }}
+							</p>
+							<p v-if="win">
+								{{ win }}
+							</p>
+							<a class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
+						</div>
 						<div class="p-3" v-if="jugando">
 							<p class="text-danger text-center text-small" v-if="error">
 								{{ error }}
@@ -106,7 +115,7 @@
 							<div class="flex" v-if="game">
 								<div class="form-floating mb-3">
 									<input type="text" v-model="input_word" class="form-control" id="floatingInput"
-										placeholder="Ingresa tu nombre de usuario">
+										placeholder="Ingresa tu nombre de usuario" required>
 									<label for="floatingInput">Palabra o letra</label>
 								</div>
 								<button type="button"
@@ -118,12 +127,12 @@
 					</div>
 				</div>
 				<div class="col-md-6" v-if="username">
-					<small>Mi user - {{ username }}</small>
-					<p class="font-light"> Historial de jugadas </p>
+					<small> 🚀 <b>Username</b> - {{ username }}</small>
+					<p class="font-light text-muted"> Historial de jugadas </p>
 					<div class="scroll">
 						<ul>
 							<li v-for="item in game_data.slice().reverse()">
-								✍️ - {{ item.userSend }} - Ha jugado - {{ item.wordSend }}
+								✍️  {{ item.usersend }} ➡️ ha jugado: {{ item.wordsend }}
 							</li>
 						</ul>
 					</div>

@@ -38,6 +38,8 @@ type Model struct {
 	Jugando      bool    `js:"jugando"`
 	FoundLetters string  `js:"found_letters"`
 	GameData     []*Game `js:"game_data"`
+	Lost         string  `js:"lost"`
+	Win          string  `js:"win"`
 
 	// outputs
 	Winner string `js:"winner"`
@@ -79,10 +81,6 @@ func (m *Model) Login() {
 		}
 
 		m.Token = rObj.Get("token").String()
-		if m.Token != "" {
-			m.Username = ""
-			m.Password = ""
-		}
 	}()
 }
 
@@ -116,11 +114,6 @@ func (m *Model) Register() {
 		}
 
 		m.Token = rObj.Get("token").String()
-		if m.Token != "" {
-			m.Username = ""
-			m.Password = ""
-			m.GetGame()
-		}
 	}()
 }
 
@@ -130,8 +123,6 @@ func (m *Model) Jugar() {
 		return
 	}
 
-	m.Jugando = true
-	m.Connect()
 	m.GetGame()
 }
 
@@ -161,6 +152,8 @@ func (m *Model) GetGame() {
 			Object: rObj,
 		}
 
+		m.Jugando = true
+		m.Connect()
 		m.Error = ""
 		m.Game = msg
 		m.FoundLetters = help.ShowWord(m.Game.Word, m.Game.Encontrados)
@@ -211,8 +204,12 @@ func getStreamMessage(msg string) *Game {
 }
 
 func (m *Model) Send() {
+	if m.InputWord == "" {
+		m.Error = "Ingresa una letra."
+		return
+	}
+	m.Error = ""
 	msg := &Word{Object: js.Global.Get("Object").New()}
-
 	msg.Game_id = m.Game.Id
 	msg.Word = strings.ToUpper(m.InputWord)
 	msg.User = m.Username
@@ -232,9 +229,7 @@ func (m *Model) Send() {
 
 func (m *Model) Received() {
 	buf := make([]byte, 1024)
-	// Wrap call in goroutine to use blocking code
 	go func() {
-		// Blocks until a WebSocket frame is received
 		for m.ConnOpen {
 			n, err := WSConn.Read(buf)
 			if err != nil {
@@ -242,18 +237,27 @@ func (m *Model) Received() {
 			}
 
 			game := getStreamMessage(string(buf[:n]))
-			m.Status = game.Status
+			messageStatus, restTries := help.MessageStatus(game.Usersend, m.Username, game.Wordsend, game.Status)
+			m.Status = messageStatus
+			if restTries != 0 {
+				m.Tries = m.Tries - 1
+				if m.Tries == 0 {
+					m.Jugando = false
+					m.Tries = 6
+					m.Lost = "Lo siento, has perdido 😢"
+					m.ConnOpen = false
+				}
+			}
+
 			m.FoundLetters = help.ShowWord(game.Word, game.Encontrados)
 			m.GameData = append(m.GameData, game)
 			m.InputWord = ""
-
-			if m.Game.Finalizada {
-				m.Winner = "🏆 " + game.Winner + " - Ha ganado el juego"
-				m.Reset()
+			if game.Status == 4 {
+				m.Win = messageStatus
+				m.Jugando = false
+				m.ConnOpen = false
 			}
-
 		}
-
 	}()
 }
 
@@ -278,10 +282,12 @@ func (m *Model) Reset() {
 	m.Status = ""
 	m.Error = ""
 	m.Winner = ""
+	m.Lost = ""
+	m.Win = ""
 	m.Game = &Game{}
 	m.Word = &Word{}
 	m.ConnOpen = false
+	m.Jugando = false
 	m.FoundLetters = ""
 	m.Tries = 6
-
 }

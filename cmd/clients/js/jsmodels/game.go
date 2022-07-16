@@ -10,7 +10,7 @@ type Game struct {
 	Encontrados []string `js:"encontrados"`
 	Finalizada  bool     `js:"finalizada"`
 	Error       string   `js:"error"`
-	UserSend    string   `js:"user_send"`
-	WordSend    string   `js:"word_send"`
-	Status      string   `js:"status"`
+	Usersend    string   `js:"usersend"`
+	Wordsend    string   `js:"wordsend"`
+	Status      int      `js:"status"`
 }

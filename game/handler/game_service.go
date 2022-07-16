@@ -51,11 +51,13 @@ func (g *GameService) Start() {
 				Winner:      game.Winner,
 				Encontrados: game.Encontrados,
 				Finalizada:  game.Finalizada,
-				UserSend:    msg.User,
-				WordSend:    msg.Word,
-				Status:      msg.User + " - " + game.Status,
+				Usersend:    msg.User,
+				Wordsend:    msg.Word,
+				Status:      game.Status,
 				Error:       msgErr,
 			}
+
+			log.Println(gameToSend.Usersend, gameToSend.Wordsend, gameToSend.Status)
 			for _, v := range g.connections {
 				log.Println("Enviando . . . ")
 				go v.Send(&gameToSend) // Usuario que lo envia

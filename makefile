@@ -11,6 +11,18 @@ gen-grpc-gateway:
 	--grpc-gateway_out ./protos --grpc-gateway_opt paths=source_relative \
 	./protos/ahorcado/proto.proto \
 	./protos/auth/proto.proto
+
+gen-grpc-gateway-swagger:
+	protoc -I ./protos \
+	--openapiv2_out ./openapiv2 \
+	./protos/ahorcado/proto.proto \
+	./protos/auth/proto.proto 
+
+see-doc-swagger:
+	docker run -p 80:8080 \
+    -e SWAGGER_JSON=./openapiv2/ahorcado/proto.swagger.json \
+    -v /openapiv2:/openapiv2 \
+    swaggerapi/swagger-ui
 	
 clean-grpc-gateway:
 	rm -rf protos/ahorcado/*.pb.gw.go

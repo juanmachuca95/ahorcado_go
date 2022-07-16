@@ -8,5 +8,5 @@ type Game struct {
 	Encontrados []string           `bson:"encontrados" json:"econtrados,omitempty"`
 	Winner      string             `bson:"winner" json:"winner,omitempty"`
 	Finalizada  bool               `bson:"finalizada" json:"finalizada,omitempty"`
-	Status      string             `bson:"status" json:"status,omitempty"`
+	Status      int32              `bson:"status" json:"status,omitempty"`
 }

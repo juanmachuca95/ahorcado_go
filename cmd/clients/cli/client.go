@@ -86,8 +86,8 @@ func main() {
 					inGame.Encontrados = in.Encontrados
 					inGame.Finalizada = in.Finalizada
 					inGame.Error = in.Error
-					inGame.WordSend = in.WordSend
-					inGame.UserSend = in.UserSend
+					inGame.Wordsend = in.Wordsend
+					inGame.Usersend = in.Usersend
 
 					if inGame.Finalizada {
 						GameWin(&inGame, myUser)
@@ -98,7 +98,7 @@ func main() {
 						Panel()
 					} else {
 						ShowInfo(&inGame, tries)
-						if inGame.Error != "" && in.UserSend == myUser {
+						if inGame.Error != "" && in.Usersend == myUser {
 							tries--
 							frames.Frames(tries)
 						}
@@ -216,12 +216,12 @@ func ShowInfo(inGame *ah.Game, tries int) {
 	if inGame.Error != "" {
 		status = inGame.Error
 	} else {
-		status = fmt.Sprintf("La letra (%s) Ha sido encontrada 👍", inGame.WordSend)
+		status = fmt.Sprintf("La letra (%s) Ha sido encontrada 👍", inGame.Wordsend)
 	}
 
 	results := ShowWord(inGame.Word, inGame.Encontrados)
 	pterm.DefaultSection.Println("Palabra: ", results, " - (", len(inGame.Word), ") Letras")
-	pterm.Info.Println("El usuario", inGame.UserSend, " ha jugado: ", inGame.WordSend, "\nLetras encontradas: ", inGame.Encontrados, " \nIntentos: ", tries, "\nEstatus: ", status)
+	pterm.Info.Println("El usuario", inGame.Usersend, " ha jugado: ", inGame.Wordsend, "\nLetras encontradas: ", inGame.Encontrados, " \nIntentos: ", tries, "\nEstatus: ", status)
 	pterm.Println()
 }
 

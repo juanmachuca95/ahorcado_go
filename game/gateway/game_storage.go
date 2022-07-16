@@ -15,7 +15,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const collectionGame = "game"
+const _collectionGame = "game"
+const (
+	_codeFound        = 1
+	_codeNotFound     = 2
+	_codeAlreadyFound = 3
+	_codeWinner       = 4
+	_codeUnexpected   = 5
+)
 
 type GameStorage interface {
 	getRandomGame() (*m.Game, error)
@@ -33,7 +40,7 @@ func NewGameStorageGateway(db *mongo.Database) GameStorage {
 }
 
 func (s *GameService) createGames() (bool, error) {
-	coll := s.Collection(collectionGame)
+	coll := s.Collection(_collectionGame)
 	docs := q.CreateGames()
 
 	_, err := coll.InsertMany(context.TODO(), docs)
@@ -46,7 +53,7 @@ func (s *GameService) createGames() (bool, error) {
 
 func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
 	pipeline := q.GetRandomGameToSet()
-	cursor, err := s.Collection(collectionGame).Aggregate(context.Background(), pipeline)
+	cursor, err := s.Collection(_collectionGame).Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return &m.Game{}, err
 	}
@@ -68,7 +75,7 @@ func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
 
 func (s *GameService) getRandomGame() (*m.Game, error) {
 	pipeline := q.GetRandomGame()
-	cursor, err := s.Collection(collectionGame).Aggregate(context.Background(), pipeline)
+	cursor, err := s.Collection(_collectionGame).Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return &m.Game{
 			Encontrados: []string{},
@@ -92,7 +99,7 @@ func (s *GameService) getRandomGame() (*m.Game, error) {
 }
 
 func (s *GameService) getGame(gameId string) (*m.Game, error) {
-	collection := s.Collection(collectionGame)
+	collection := s.Collection(_collectionGame)
 	objID, _ := primitive.ObjectIDFromHex(gameId)
 
 	var game m.Game
@@ -111,66 +118,60 @@ func (s *GameService) getGame(gameId string) (*m.Game, error) {
 func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 	game, err := s.getGame(id)
 	if err != nil {
-		return &m.Game{}, errors.New("el juego ha finalizado o no está disponible")
+		return nil, errors.New("el juego ha finalizado o no está disponible")
 	}
 
-	if helpers.AlreadyFound(word, game.Encontrados) { // letra ya encontrada
-		messageStatus := fmt.Sprintf("La letra %v ya figura en la lista de encontrados 👎", word)
-		game.Status = messageStatus
+	if helpers.AlreadyFound(word, game.Encontrados) {
+		game.Status = _codeAlreadyFound
 		return game, nil
 	}
 
-	if game.Word == word { // El usuario ingresa una palabra y la palabra coincide
-		log.Println("2. Ha encontrado la palabra.")
-		ok, err := s.UpdateWinner(word, user, *game)
-		if !ok {
+	if game.Word == word {
+		err := s.UpdateWinner(word, user, *game)
+		if err != nil {
+			game.Status = _codeUnexpected
 			return game, err
 		}
 
-		game.Status = "¡Has encontrado la palabra!, 🥳"
+		game.Status = _codeWinner
 		game.Finalizada = true
 		return game, nil
 	}
 
-	if !strings.Contains(game.Word, word) { // La letra ingresada por el usuario coincide con una letra en la palabra del juego
-		messageStatus := fmt.Sprintf("La letra o palabra ingresada (%s) no existe 👎, -1 intentos.", word)
-		game.Status = messageStatus
+	if !strings.Contains(game.Word, word) {
+		game.Status = _codeNotFound
 		return game, nil
 	}
 
-	log.Println("4. La palabra ingresada coincide con una letra de la palabra del juego")
 	game.Encontrados = append(game.Encontrados, word)
-	if helpers.Win(game.Word, game.Encontrados) { // si es la última letra para encontrar
-		ok, err := s.UpdateWinner(word, user, *game)
-		if !ok {
-			messageStatus := fmt.Sprintf("No fue posible actualizar el Game - error: %v", err.Error())
-			game.Status = messageStatus
+	if helpers.Win(game.Word, game.Encontrados) {
+		err := s.UpdateWinner(word, user, *game)
+		if err != nil {
+			game.Status = _codeUnexpected
 			return game, nil
 		}
 
-		game.Status = "¡Has encontrado la última letra!, 🥳"
+		game.Status = _codeWinner
 		game.Finalizada = true
+		log.Println(game.Status)
 		return game, nil
 	}
 
-	log.Println("5. Actualización de letra encontrada") // si no es la última letra del juego actualizamos los encontrados
 	_, err = s.UpdateEncontrados(game.Encontrados, game.Id.Hex())
 	if err != nil {
 		log.Fatal("No fue posible actualizar las letras encontradas - error: ", err)
 		return nil, err
 	}
 
-	game.Status = "¡Has encontrado una letra!"
+	game.Status = _codeFound
 	return game, nil
 }
 
-func (s *GameService) UpdateWinner(word, user string, game m.Game) (bool, error) {
-	collection := s.Collection(collectionGame)
+func (s *GameService) UpdateWinner(word, user string, game m.Game) error {
+	collection := s.Collection(_collectionGame)
 	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
-	} else {
-		fmt.Println("ObjectIDFromHex:", objID)
 	}
 
 	filter, update := q.UpdateWinner(objID, game.Encontrados, user)
@@ -181,25 +182,23 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) (bool, error)
 	)
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	fmt.Printf("Se ha actualizado el ganador del juego - id %s\n", game.Id.Hex())
+	/* fmt.Printf("Se ha actualizado el ganador del juego - id %s\n", game.Id.Hex())
 	_, err = s.UpdateGame()
 	if err != nil {
-		return false, err
+		return err
 	}
-
-	return true, err
+	*/
+	return nil
 }
 
 func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bool, error) {
-	collection := s.Collection(collectionGame)
+	collection := s.Collection(_collectionGame)
 	objID, err := primitive.ObjectIDFromHex(gameId)
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
-	} else {
-		fmt.Println("ObjectIDFromHex:", objID)
 	}
 
 	filter := bson.M{"_id": bson.M{"$eq": objID}}
@@ -214,12 +213,11 @@ func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bo
 		return false, err
 	}
 
-	log.Printf("Actualización de letras encontradas en el juego id - %s\n", gameId)
 	return true, nil
 }
 
 func (s *GameService) UpdateGame() (bool, error) {
-	collection := s.Collection(collectionGame)
+	collection := s.Collection(_collectionGame)
 	game, err := s.GetRandomGameToSet() // Obtengo un random game
 	if err != nil {
 		return false, errors.New("no se ha podido establecer un nuevo game")
