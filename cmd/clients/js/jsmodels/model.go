@@ -148,14 +148,15 @@ func (m *Model) GetGame() {
 			return
 		}
 
-		msg := &Game{
+		game := &Game{
 			Object: rObj,
 		}
 
 		m.Jugando = true
+		m.Reset()
 		m.Connect()
 		m.Error = ""
-		m.Game = msg
+		m.Game = game
 		m.FoundLetters = help.ShowWord(m.Game.Word, m.Game.Encontrados)
 	}()
 }
@@ -246,6 +247,7 @@ func (m *Model) Received() {
 					m.Tries = 6
 					m.Lost = "Lo siento, has perdido 😢"
 					m.ConnOpen = false
+					WSConn.Close()
 				}
 			}
 
@@ -256,6 +258,7 @@ func (m *Model) Received() {
 				m.Win = messageStatus
 				m.Jugando = false
 				m.ConnOpen = false
+				WSConn.Close()
 			}
 		}
 	}()
@@ -272,8 +275,6 @@ func (m *Model) SetLogin() {
 }
 
 func (m *Model) Reset() {
-	m.Username = ""
-
 	// Inputs
 	m.InputUser = ""
 	m.InputWord = ""
@@ -284,10 +285,6 @@ func (m *Model) Reset() {
 	m.Winner = ""
 	m.Lost = ""
 	m.Win = ""
-	m.Game = &Game{}
-	m.Word = &Word{}
-	m.ConnOpen = false
-	m.Jugando = false
 	m.FoundLetters = ""
 	m.Tries = 6
 }

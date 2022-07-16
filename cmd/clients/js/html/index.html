@@ -44,8 +44,8 @@
 							placeholder="Ingresa tu password" v-model="password">
 						<label for="floatingInputPassword">Password</label>
 					</div>
-					<button type="button" class="block btn btn-outline-warning text-dark btn-lg form-control"
-						@click="Login()">Login y a Jugar 🚀</button>
+					<button type="button" class="block btn btn-warning text-dark btn-lg form-control"
+						@click="Login()">Login</button>
 
 					<div class="card-footer bg-transparent text-center">
 						<p class="m-0 font-weight-bold" style=" font-size:small;">
@@ -71,8 +71,8 @@
 							placeholder="Ingresa tu password" v-model="password">
 						<label for="floatingInputPassword">Password</label>
 					</div>
-					<button type="button" class="block btn btn-outline-warning text-dark btn-lg form-control"
-						@click="Register()">Registrarse y a Jugar 🚀</button>
+					<button type="button" class="block btn btn-success text-dark btn-lg form-control"
+						@click="Register()">Registrarse</button>
 
 					<div class="card-footer bg-transparent text-center">
 						<p class="m-0 font-weight-bold" style=" font-size:small;">
@@ -100,11 +100,10 @@
 							</p>
 							<a class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
 						</div>
+						<p class="text-danger text-center text-small" v-if="error">
+							{{ error }}
+						</p>
 						<div class="p-3" v-if="jugando">
-							<p class="text-danger text-center text-small" v-if="error">
-								{{ error }}
-							</p>
-
 							<div class="p-3">
 								<h2 style="letter-spacing:10px;">
 									🔒{{ found_letters }}

@@ -29,7 +29,7 @@ func Connect() *mongo.Database {
 		log.Fatal(err)
 	}
 
-	db := client.Database("testahorcado")
+	db := client.Database("ahorcado")
 	fmt.Println("Successfully connected and pinged.")
 	return db
 }

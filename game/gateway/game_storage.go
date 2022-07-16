@@ -73,14 +73,13 @@ func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
 	return &m.Game{}, errors.New("no hemos obtenido un getRandomGameToSet")
 }
 
+// getRandomGame
+// Obtiene un game con ingame en true y finalizado en false
 func (s *GameService) getRandomGame() (*m.Game, error) {
 	pipeline := q.GetRandomGame()
 	cursor, err := s.Collection(_collectionGame).Aggregate(context.Background(), pipeline)
 	if err != nil {
-		return &m.Game{
-			Encontrados: []string{},
-			Finalizada:  false,
-		}, err
+		return nil, err
 	}
 
 	var game m.Game
@@ -106,10 +105,7 @@ func (s *GameService) getGame(gameId string) (*m.Game, error) {
 	var query = q.GetGame(objID, false)
 	err := collection.FindOne(context.TODO(), query).Decode(&game)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return &game, err
-		}
-		panic(err)
+		return nil, err
 	}
 
 	return &game, nil
@@ -118,7 +114,7 @@ func (s *GameService) getGame(gameId string) (*m.Game, error) {
 func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 	game, err := s.getGame(id)
 	if err != nil {
-		return nil, errors.New("el juego ha finalizado o no está disponible")
+		return nil, err
 	}
 
 	if helpers.AlreadyFound(word, game.Encontrados) {
@@ -185,12 +181,6 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) error {
 		return err
 	}
 
-	/* fmt.Printf("Se ha actualizado el ganador del juego - id %s\n", game.Id.Hex())
-	_, err = s.UpdateGame()
-	if err != nil {
-		return err
-	}
-	*/
 	return nil
 }
 
