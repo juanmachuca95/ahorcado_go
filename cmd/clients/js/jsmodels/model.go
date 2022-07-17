@@ -238,7 +238,7 @@ func (m *Model) Received() {
 			}
 
 			game := getStreamMessage(string(buf[:n]))
-			messageStatus, restTries := help.MessageStatus(game.Usersend, m.Username, game.Wordsend, game.Status)
+			messageStatus, restTries := help.MessageStatus(game.Usersend, m.Username, game.Wordsend, game.Word, game.Status)
 			m.Status = messageStatus
 			if restTries != 0 {
 				m.Tries = m.Tries - 1

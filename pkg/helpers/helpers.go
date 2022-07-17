@@ -63,7 +63,7 @@ func ShowWord(clave string, letras []string) string {
 	return strings.Join(results, "")
 }
 
-func MessageStatus(user, myuser, word string, status int) (string, int) {
+func MessageStatus(user, myuser, word, winWord string, status int) (string, int) {
 	messageMe := false
 	if user == myuser {
 		messageMe = true
@@ -86,9 +86,9 @@ func MessageStatus(user, myuser, word string, status int) (string, int) {
 		return fmt.Sprintf("¡El usuario %s ha intentado la letra %s pero ya ha sido encontrada! 🐢", user, word), 0
 	case _codeWinner:
 		if messageMe {
-			return fmt.Sprintf("🎉 Has ganado! 🎊 La palabra era %s 🏆", word), 0
+			return fmt.Sprintf("🎉 Has ganado! 🎊 La palabra era %s 🏆", winWord), 0
 		}
-		return fmt.Sprintf("¡El usuario %s ha ganado! 🐢 La palabra era: %s", user, word), 0
+		return fmt.Sprintf("¡El usuario %s ha ganado! 🐢 La palabra era: %s", user, winWord), 0
 	case _codeUnexpected:
 		return "Ha ocurrido un error inesperado", 0
 	default:

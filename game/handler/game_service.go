@@ -57,7 +57,9 @@ func (g *GameService) Start() {
 				Error:       msgErr,
 			}
 
-			log.Println(gameToSend.Usersend, gameToSend.Wordsend, gameToSend.Status)
+			log.Println("data user ", gameToSend.Usersend, gameToSend.Wordsend)
+			log.Println("code ", gameToSend.Status)
+			log.Println(gameToSend.Word, gameToSend.Encontrados)
 			for _, v := range g.connections {
 				log.Println("Enviando . . . ")
 				go v.Send(&gameToSend) // Usuario que lo envia
@@ -93,9 +95,9 @@ func (g *GameService) Ahorcado(stream ah.Ahorcado_AhorcadoServer) error {
 }
 
 func (g *GameService) GetRandomGame(ctx context.Context, req *emptypb.Empty) (*ah.Game, error) {
-	game, err := g.gmGtw.GetRandomGame()
+	game, err := g.gmGtw.GetGame()
 	if err != nil {
-		return &ah.Game{}, err
+		return nil, err
 	}
 
 	return &ah.Game{

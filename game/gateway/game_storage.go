@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/bxcodec/faker/v3"
 	m "github.com/juanmachuca95/ahorcado_go/game/models"
 	q "github.com/juanmachuca95/ahorcado_go/game/querys"
 	helpers "github.com/juanmachuca95/ahorcado_go/pkg/helpers"
@@ -25,10 +26,14 @@ const (
 )
 
 type GameStorage interface {
+	getGame() (*m.Game, error)
+	setGame(id string) error
+
 	getRandomGame() (*m.Game, error)
-	getGame(string) (*m.Game, error)
+	getGameById(string) (*m.Game, error)
 	inGame(word, user, id string) (*m.Game, error)
-	createGames() (bool, error)
+	createGame() (*m.Game, error)
+	createGames() error
 }
 
 type GameService struct {
@@ -39,38 +44,69 @@ func NewGameStorageGateway(db *mongo.Database) GameStorage {
 	return &GameService{db}
 }
 
-func (s *GameService) createGames() (bool, error) {
+func (s *GameService) createGames() error {
 	coll := s.Collection(_collectionGame)
 	docs := q.CreateGames()
 
 	_, err := coll.InsertMany(context.TODO(), docs)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
-func (s *GameService) GetRandomGameToSet() (*m.Game, error) {
-	pipeline := q.GetRandomGameToSet()
-	cursor, err := s.Collection(_collectionGame).Aggregate(context.Background(), pipeline)
-	if err != nil {
-		return &m.Game{}, err
+func (s *GameService) createGame() (*m.Game, error) {
+	coll := s.Collection(_collectionGame)
+	word := faker.Word()
+	game := m.Game{
+		Word:        word,
+		Winner:      "",
+		Encontrados: []string{},
+		Finalizada:  false,
 	}
+
+	docs := q.CreateGame(word)
+	_, err := coll.InsertOne(context.TODO(), docs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &game, nil
+}
+
+func (s *GameService) getGame() (*m.Game, error) {
+	coll := s.Collection(_collectionGame)
 
 	var game m.Game
-	for cursor.Next(context.Background()) {
-		err := cursor.Decode(&game)
-		if err != nil {
-			log.Fatal("Error decode - error: ", err.Error())
-		}
+	var query = q.GetGame()
+	err := coll.FindOne(context.TODO(), query).Decode(&game)
+	if err != nil {
+		return nil, err
 	}
 
-	if game.Word != "" {
-		return &game, nil
+	return &game, nil
+}
+
+func (s *GameService) setGame(id string) error {
+	coll := s.Collection(_collectionGame)
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		fmt.Println("ObjectIDFromHex ERROR", err)
 	}
 
-	return &m.Game{}, errors.New("no hemos obtenido un getRandomGameToSet")
+	filter, update := q.SetGame(objID, true)
+	_, err = coll.UpdateOne(
+		context.Background(),
+		filter,
+		update,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // getRandomGame
@@ -90,20 +126,20 @@ func (s *GameService) getRandomGame() (*m.Game, error) {
 		}
 	}
 
-	if game.Word != "" {
-		return &game, nil
+	if game.Word == "" {
+		return nil, errors.New("no hay games disponibles")
 	}
 
-	return &game, errors.New("no hay juegos disponibles")
+	return &game, nil
 }
 
-func (s *GameService) getGame(gameId string) (*m.Game, error) {
-	collection := s.Collection(_collectionGame)
+func (s *GameService) getGameById(gameId string) (*m.Game, error) {
+	coll := s.Collection(_collectionGame)
 	objID, _ := primitive.ObjectIDFromHex(gameId)
 
 	var game m.Game
-	var query = q.GetGame(objID, false)
-	err := collection.FindOne(context.TODO(), query).Decode(&game)
+	var query = q.GetGameById(objID, false)
+	err := coll.FindOne(context.TODO(), query).Decode(&game)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +148,7 @@ func (s *GameService) getGame(gameId string) (*m.Game, error) {
 }
 
 func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
-	game, err := s.getGame(id)
+	game, err := s.getGame()
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +158,7 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 		return game, nil
 	}
 
-	if game.Word == word {
+	if strings.EqualFold(game.Word, word) {
 		err := s.UpdateWinner(word, user, *game)
 		if err != nil {
 			game.Status = _codeUnexpected
@@ -149,7 +185,6 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 
 		game.Status = _codeWinner
 		game.Finalizada = true
-		log.Println(game.Status)
 		return game, nil
 	}
 
@@ -164,14 +199,14 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 }
 
 func (s *GameService) UpdateWinner(word, user string, game m.Game) error {
-	collection := s.Collection(_collectionGame)
+	coll := s.Collection(_collectionGame)
 	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
 	}
 
 	filter, update := q.UpdateWinner(objID, game.Encontrados, user)
-	_, err = collection.UpdateOne(
+	_, err = coll.UpdateOne(
 		context.Background(),
 		filter,
 		update,
@@ -185,7 +220,7 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) error {
 }
 
 func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bool, error) {
-	collection := s.Collection(_collectionGame)
+	coll := s.Collection(_collectionGame)
 	objID, err := primitive.ObjectIDFromHex(gameId)
 	if err != nil {
 		fmt.Println("ObjectIDFromHex ERROR", err)
@@ -193,7 +228,7 @@ func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bo
 
 	filter := bson.M{"_id": bson.M{"$eq": objID}}
 	update := bson.M{"$set": bson.M{"encontrados": encontrados}}
-	_, err = collection.UpdateOne(
+	_, err = coll.UpdateOne(
 		context.Background(),
 		filter,
 		update,
@@ -206,32 +241,16 @@ func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bo
 	return true, nil
 }
 
-func (s *GameService) UpdateGame() (bool, error) {
-	collection := s.Collection(_collectionGame)
-	game, err := s.GetRandomGameToSet() // Obtengo un random game
+// Delete All games
+// Only admin Role
+func (s *GameService) DeleteAll() error {
+	coll := s.Collection(_collectionGame)
+
+	deleted, err := coll.DeleteMany(context.TODO(), nil)
 	if err != nil {
-		return false, errors.New("no se ha podido establecer un nuevo game")
+		return err
 	}
 
-	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())
-	if err != nil {
-		fmt.Println("ObjectIDFromHex ERROR", err)
-		return false, err
-	} else {
-		fmt.Println("ObjectIDFromHex:", objID)
-	}
-
-	filter, update := q.UpdateGame(objID)
-	_, err = collection.UpdateOne(
-		context.Background(),
-		filter,
-		update,
-	)
-
-	if err != nil {
-		return false, err
-	}
-
-	fmt.Printf("Se actualizo el proximo juego id: %s\n", game.Id)
-	return true, err
+	log.Println("Se han eliminado ", deleted.DeletedCount, " games")
+	return nil
 }

@@ -6,14 +6,9 @@ import (
 )
 
 type GameGateway interface {
-	GetRandomGame() (*m.Game, error)
+	CreateGames() error
+	GetGame() (*m.Game, error)
 	InGame(word, user, id string) (*m.Game, error)
-	/* GetRandomGameToSet() (generated.Game, error)
-	CreateGame() (models.Game, error)
-	MyGame(*generated.Word) (generated.Game, error)
-	SeedWords() bool
-	UpdateGame() (bool, error) */
-	CreateGames() (bool, error)
 }
 
 type GameInDB struct {
@@ -24,12 +19,35 @@ func NewGameGateway(db *mongo.Database) GameGateway {
 	return &GameInDB{NewGameStorageGateway(db)}
 }
 
-func (g *GameInDB) CreateGames() (bool, error) {
+func (g *GameInDB) CreateGames() error {
 	return g.createGames()
 }
 
-func (g *GameInDB) GetRandomGame() (*m.Game, error) {
-	return g.getRandomGame()
+func (g *GameInDB) GetGame() (*m.Game, error) {
+	game, err := g.getGame()
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			return nil, err
+		}
+	}
+
+	if err == mongo.ErrNoDocuments {
+		game, err = g.getRandomGame()
+		if err != nil {
+			game, err = g.createGame()
+			if err != nil {
+				return nil, err
+			}
+
+			return game, nil
+		}
+
+		if err = g.setGame(game.Id.Hex()); err != nil {
+			return nil, err
+		}
+	}
+
+	return game, err
 }
 
 func (g *GameInDB) InGame(word, user, id string) (*m.Game, error) {
