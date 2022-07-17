@@ -30,7 +30,11 @@
 
 			<!-- Login -->
 			<div v-if="login" class="row d-flex justify-content-center align-items-center" style="height: 80vh;">
-				<div class="col-md-6 p-4">		
+				<div class="col-md-6 p-4">
+					<div class="p-3 text-center">
+						<h1>💀 Ahorcado</h1>
+						<small class="text-muted fst-italic">by juanmachuca95</small>
+					</div>		
 					<div v-if="error_login">
 						<p class="text-center text-small text-danger">{{ error_login }}</p> 
 					</div>
@@ -57,7 +61,11 @@
 
 			<!-- Register -->
 			<div v-if="register" class="row d-flex justify-content-center align-items-center" style="height: 80vh;">
-				<div class="col-md-6 p-4">		
+				<div class="col-md-6 p-4">
+					<div class="p-3 text-center">
+						<h1>💀 Ahorcado</h1>
+						<small class="text-muted fst-italic">by juanmachuca95</small>
+					</div>			
 					<div v-if="error_register">
 						<p class="text-center text-small text-danger"> {{ error_register }} </p>
 					</div>
@@ -71,7 +79,7 @@
 							placeholder="Ingresa tu password" v-model="password">
 						<label for="floatingInputPassword">Password</label>
 					</div>
-					<button type="button" class="block btn btn-success text-dark btn-lg form-control"
+					<button type="button" class="block btn btn-success btn-lg form-control"
 						@click="Register()">Registrarse</button>
 
 					<div class="card-footer bg-transparent text-center">
@@ -88,7 +96,7 @@
 				<div class="col-md-6">
 					<div class="text-center">
 						<h1 class="pt-3 pb-0">💀 Ahorcado</h1>
-						<small class="text-muted">by juanmachuca95</small>
+						<small class="text-muted fst-italic">by juanmachuca95</small>
 						<h5 class="p-3">Tienes hasta ({{ tries }}) fallos.</h5>
 
 						<div v-if="!jugando">
