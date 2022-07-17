@@ -44,6 +44,13 @@ func main() {
 	authServ := handler.NewAuthService(db)
 	gameServ := handler.NewGameService(db)
 
+	// Seeder
+	/* gtwStorage := gtw.NewGameGateway(db)
+	if err := gtwStorage.CreateGames(); err != nil {
+		log.Fatal(err)
+	}
+	*/
+
 	// Middleware
 	authInterceptor := interceptor.NewAuthInterceptor()
 	serv := grpc.NewServer(

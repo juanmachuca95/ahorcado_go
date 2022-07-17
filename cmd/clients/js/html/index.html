@@ -106,8 +106,11 @@
 							<p v-if="win">
 								{{ win }}
 							</p>
-							<a class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
 						</div>
+						
+						<a v-if="!jugando" class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
+						<a class="btn btn-warning" @click="GetRanking()" href="#ranking"> Ranking </a>
+						
 						<p class="text-danger text-center text-small" v-if="error">
 							{{ error }}
 						</p>
@@ -133,13 +136,25 @@
 
 					</div>
 				</div>
-				<div class="col-md-6" v-if="username">
+				<div class="col-md-6" v-if="jugando">
 					<small> 🚀 <b>Username</b> - {{ username }}</small>
 					<p class="font-light text-muted"> Historial de jugadas </p>
 					<div class="scroll">
 						<ul>
 							<li v-for="item in game_data.slice().reverse()">
 								✍️  {{ item.usersend }} ➡️ ha jugado: {{ item.wordsend }}
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<div class="col-md-6" v-if="ranking">
+					<small> 🚀 <b>Username</b> - {{ username }}</small>
+					<p class="font-light text-muted"> Ranking </p>
+					<div class="scroll">
+						<ul>
+							<li v-for="item in rankings_data">
+								✍️  {{ item.winner }} ➡️ ganados: {{ item.won }}
 							</li>
 						</ul>
 					</div>

@@ -14,6 +14,7 @@ import (
 type GameService struct {
 	ah.UnimplementedAhorcadoServer
 	gmGtw       gm.GameGateway
+	ranGtw      gm.RankingGateway
 	connections []*Connection
 	broadcast   chan *ah.Word
 	quit        chan struct{}
@@ -23,6 +24,7 @@ type GameService struct {
 func NewGameService(db *mongo.Database) *GameService {
 	game := &GameService{
 		gmGtw:     gm.NewGameGateway(db),
+		ranGtw:    gm.NewRankingGateway(db),
 		broadcast: make(chan *ah.Word),
 		quit:      make(chan struct{}),
 	}
@@ -94,7 +96,7 @@ func (g *GameService) Ahorcado(stream ah.Ahorcado_AhorcadoServer) error {
 	return err
 }
 
-func (g *GameService) GetRandomGame(ctx context.Context, req *emptypb.Empty) (*ah.Game, error) {
+func (g *GameService) GetGame(ctx context.Context, req *emptypb.Empty) (*ah.Game, error) {
 	game, err := g.gmGtw.GetGame()
 	if err != nil {
 		return nil, err
@@ -108,4 +110,23 @@ func (g *GameService) GetRandomGame(ctx context.Context, req *emptypb.Empty) (*a
 		Finalizada:  game.Finalizada,
 		Status:      game.Status,
 	}, nil
+}
+
+func (g *GameService) GetTop(ctx context.Context, req *emptypb.Empty) (*ah.ResponseRanking, error) {
+	rankings, err := g.ranGtw.GetTop()
+	if err != nil {
+		return nil, err
+	}
+
+	rankResponse := []*ah.Ranking{}
+	for _, value := range rankings {
+		ranking := ah.Ranking{
+			Username: value.Winner,
+			Won:      value.Won,
+		}
+
+		rankResponse = append(rankResponse, &ranking)
+	}
+
+	return &ah.ResponseRanking{Rankings: rankResponse}, nil
 }

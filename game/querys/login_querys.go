@@ -5,6 +5,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-var Register = func(l *models.Login) interface{} {
+var Register = func(l *models.Login) bson.D {
 	return bson.D{{"username", l.Username}, {"password", l.Password}}
 }

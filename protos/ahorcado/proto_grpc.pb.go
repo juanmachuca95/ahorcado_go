@@ -23,8 +23,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AhorcadoClient interface {
-	GetRandomGame(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Game, error)
+	GetGame(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Game, error)
 	Ahorcado(ctx context.Context, opts ...grpc.CallOption) (Ahorcado_AhorcadoClient, error)
+	GetTop(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ResponseRanking, error)
 }
 
 type ahorcadoClient struct {
@@ -35,9 +36,9 @@ func NewAhorcadoClient(cc grpc.ClientConnInterface) AhorcadoClient {
 	return &ahorcadoClient{cc}
 }
 
-func (c *ahorcadoClient) GetRandomGame(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Game, error) {
+func (c *ahorcadoClient) GetGame(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Game, error) {
 	out := new(Game)
-	err := c.cc.Invoke(ctx, "/protos.Ahorcado/GetRandomGame", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/protos.Ahorcado/GetGame", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,12 +76,22 @@ func (x *ahorcadoAhorcadoClient) Recv() (*Game, error) {
 	return m, nil
 }
 
+func (c *ahorcadoClient) GetTop(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ResponseRanking, error) {
+	out := new(ResponseRanking)
+	err := c.cc.Invoke(ctx, "/protos.Ahorcado/GetTop", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AhorcadoServer is the server API for Ahorcado service.
 // All implementations must embed UnimplementedAhorcadoServer
 // for forward compatibility
 type AhorcadoServer interface {
-	GetRandomGame(context.Context, *empty.Empty) (*Game, error)
+	GetGame(context.Context, *empty.Empty) (*Game, error)
 	Ahorcado(Ahorcado_AhorcadoServer) error
+	GetTop(context.Context, *empty.Empty) (*ResponseRanking, error)
 	mustEmbedUnimplementedAhorcadoServer()
 }
 
@@ -88,11 +99,14 @@ type AhorcadoServer interface {
 type UnimplementedAhorcadoServer struct {
 }
 
-func (UnimplementedAhorcadoServer) GetRandomGame(context.Context, *empty.Empty) (*Game, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRandomGame not implemented")
+func (UnimplementedAhorcadoServer) GetGame(context.Context, *empty.Empty) (*Game, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGame not implemented")
 }
 func (UnimplementedAhorcadoServer) Ahorcado(Ahorcado_AhorcadoServer) error {
 	return status.Errorf(codes.Unimplemented, "method Ahorcado not implemented")
+}
+func (UnimplementedAhorcadoServer) GetTop(context.Context, *empty.Empty) (*ResponseRanking, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTop not implemented")
 }
 func (UnimplementedAhorcadoServer) mustEmbedUnimplementedAhorcadoServer() {}
 
@@ -107,20 +121,20 @@ func RegisterAhorcadoServer(s grpc.ServiceRegistrar, srv AhorcadoServer) {
 	s.RegisterService(&Ahorcado_ServiceDesc, srv)
 }
 
-func _Ahorcado_GetRandomGame_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Ahorcado_GetGame_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AhorcadoServer).GetRandomGame(ctx, in)
+		return srv.(AhorcadoServer).GetGame(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.Ahorcado/GetRandomGame",
+		FullMethod: "/protos.Ahorcado/GetGame",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AhorcadoServer).GetRandomGame(ctx, req.(*empty.Empty))
+		return srv.(AhorcadoServer).GetGame(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -151,6 +165,24 @@ func (x *ahorcadoAhorcadoServer) Recv() (*Word, error) {
 	return m, nil
 }
 
+func _Ahorcado_GetTop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(empty.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AhorcadoServer).GetTop(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protos.Ahorcado/GetTop",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AhorcadoServer).GetTop(ctx, req.(*empty.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Ahorcado_ServiceDesc is the grpc.ServiceDesc for Ahorcado service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -159,8 +191,12 @@ var Ahorcado_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AhorcadoServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetRandomGame",
-			Handler:    _Ahorcado_GetRandomGame_Handler,
+			MethodName: "GetGame",
+			Handler:    _Ahorcado_GetGame_Handler,
+		},
+		{
+			MethodName: "GetTop",
+			Handler:    _Ahorcado_GetTop_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

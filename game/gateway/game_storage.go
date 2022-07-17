@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 
@@ -16,8 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const _collectionGame = "game"
 const (
+	_collectionGame   = "game"
 	_codeFound        = 1
 	_codeNotFound     = 2
 	_codeAlreadyFound = 3
@@ -92,7 +91,7 @@ func (s *GameService) setGame(id string) error {
 	coll := s.Collection(_collectionGame)
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		fmt.Println("ObjectIDFromHex ERROR", err)
+		return err
 	}
 
 	filter, update := q.SetGame(objID, true)
@@ -190,7 +189,6 @@ func (s *GameService) inGame(word, user, id string) (*m.Game, error) {
 
 	_, err = s.UpdateEncontrados(game.Encontrados, game.Id.Hex())
 	if err != nil {
-		log.Fatal("No fue posible actualizar las letras encontradas - error: ", err)
 		return nil, err
 	}
 
@@ -202,7 +200,7 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) error {
 	coll := s.Collection(_collectionGame)
 	objID, err := primitive.ObjectIDFromHex(game.Id.Hex())
 	if err != nil {
-		fmt.Println("ObjectIDFromHex ERROR", err)
+		return err
 	}
 
 	filter, update := q.UpdateWinner(objID, game.Encontrados, user)
@@ -211,7 +209,6 @@ func (s *GameService) UpdateWinner(word, user string, game m.Game) error {
 		filter,
 		update,
 	)
-
 	if err != nil {
 		return err
 	}
@@ -223,7 +220,7 @@ func (s *GameService) UpdateEncontrados(encontrados []string, gameId string) (bo
 	coll := s.Collection(_collectionGame)
 	objID, err := primitive.ObjectIDFromHex(gameId)
 	if err != nil {
-		fmt.Println("ObjectIDFromHex ERROR", err)
+		return false, err
 	}
 
 	filter := bson.M{"_id": bson.M{"$eq": objID}}

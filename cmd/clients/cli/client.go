@@ -226,7 +226,7 @@ func ShowInfo(inGame *ah.Game, tries int) {
 }
 
 func GetRandomGame(client ah.AhorcadoClient) (*ah.Game, error) {
-	game, err := client.GetRandomGame(context.Background(), &emptypb.Empty{})
+	game, err := client.GetGame(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		log.Fatal(err.Error())
 		return game, err

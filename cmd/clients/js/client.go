@@ -17,8 +17,7 @@ func main() {
 		Object: js.Global.Get("Object").New(),
 	}
 
-	// These must be set after the struct has been initialised
-	// so that the values can be mirrored into the internal JS Object.
+	// Game
 	m.Game = &jsmodels.Game{}
 	m.Word = &jsmodels.Word{}
 
@@ -37,6 +36,7 @@ func main() {
 	m.FoundLetters = ""
 	m.Winner = ""
 	m.GameData = []*jsmodels.Game{}
+	m.RankingData = []*jsmodels.Rankings{}
 	m.ConnOpen = false
 	m.Tries = 6
 
@@ -45,13 +45,9 @@ func main() {
 
 	// Game
 	m.Jugando = false
+	m.Ranking = false
 	m.Lost = ""
 	m.Win = ""
-
-	// GetGame retorna el juego
-	// m.GetGame()
-	// m.Connect()
-	// m.Received()
 
 	// Create the VueJS viewModel using a struct pointer
 	vue.New("#app", m)

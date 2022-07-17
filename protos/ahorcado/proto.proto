@@ -23,8 +23,17 @@ message Game {
     string wordsend = 9;
 }
 
+message ResponseRanking {
+    repeated Ranking rankings = 1;
+}
+
+message Ranking {
+    string username = 1;
+    int32 won = 2;
+}
+
 service Ahorcado {
-    rpc GetRandomGame (google.protobuf.Empty) returns (Game){
+    rpc GetGame (google.protobuf.Empty) returns (Game){
         option (google.api.http) = {
             get: "/api/v1/game" 
         };
@@ -33,6 +42,12 @@ service Ahorcado {
     rpc Ahorcado (stream Word) returns (stream Game){
         option (google.api.http) = {
             get: "/api/v1/playing"
+        };
+    };
+
+    rpc GetTop (google.protobuf.Empty) returns (ResponseRanking){
+        option (google.api.http) = {
+            get: "/api/v1/ranking"
         };
     };
 }

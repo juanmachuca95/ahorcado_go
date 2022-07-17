@@ -35,11 +35,13 @@ type Model struct {
 	InputUser string `js:"input_user"`
 
 	// Game
-	Jugando      bool    `js:"jugando"`
-	FoundLetters string  `js:"found_letters"`
-	GameData     []*Game `js:"game_data"`
-	Lost         string  `js:"lost"`
-	Win          string  `js:"win"`
+	Jugando      bool        `js:"jugando"`
+	Ranking      bool        `js:"ranking"`
+	FoundLetters string      `js:"found_letters"`
+	GameData     []*Game     `js:"game_data"`
+	RankingData  []*Rankings `js:"rankings_data"`
+	Lost         string      `js:"lost"`
+	Win          string      `js:"win"`
 
 	// outputs
 	Winner string `js:"winner"`
@@ -124,6 +126,37 @@ func (m *Model) Jugar() {
 	}
 
 	m.GetGame()
+}
+
+func (m *Model) GetRanking() {
+	req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/ranking")
+	req.SetRequestHeader("Content-Type", "application/json")
+	req.SetRequestHeader("Authorization", m.Token)
+
+	go func() {
+		err := req.Send(nil)
+		if err != nil {
+			panic(err)
+		}
+
+		rObj, err := json.Unmarshal(req.ResponseText)
+		if err != nil {
+			m.Error = err.Error()
+			return
+		}
+
+		if rObj.Get("code").Bool() {
+			m.Error = rObj.Get("message").String()
+			return
+		}
+
+		m.Ranking = true
+		rankings := &Rankings{
+			Object: rObj,
+		}
+
+		m.RankingData = append(m.RankingData, rankings)
+	}()
 }
 
 func (m *Model) GetGame() {
@@ -285,6 +318,7 @@ func (m *Model) Reset() {
 	m.Winner = ""
 	m.Lost = ""
 	m.Win = ""
+	m.GameData = []*Game{}
 	m.FoundLetters = ""
 	m.Tries = 6
 }
