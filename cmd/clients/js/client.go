@@ -36,7 +36,7 @@ func main() {
 	m.FoundLetters = ""
 	m.Winner = ""
 	m.GameData = []*jsmodels.Game{}
-	m.RankingData = []*jsmodels.Rankings{}
+	m.RankingData = &jsmodels.Rankings{}
 	m.ConnOpen = false
 	m.Tries = 6
 

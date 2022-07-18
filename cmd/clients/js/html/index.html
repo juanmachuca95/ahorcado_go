@@ -153,8 +153,9 @@
 					<p class="font-light text-muted"> Ranking </p>
 					<div class="scroll">
 						<ul>
-							<li v-for="item in rankings_data">
-								✍️  {{ item.winner }} ➡️ ganados: {{ item.won }}
+							{{ rankings_data }}
+							<li v-for="data in rankings_data">
+								✍️  {{ data.winner }} ➡️ ganados: {{ data.won }}
 							</li>
 						</ul>
 					</div>

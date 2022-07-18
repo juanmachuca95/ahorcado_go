@@ -35,13 +35,13 @@ type Model struct {
 	InputUser string `js:"input_user"`
 
 	// Game
-	Jugando      bool        `js:"jugando"`
-	Ranking      bool        `js:"ranking"`
-	FoundLetters string      `js:"found_letters"`
-	GameData     []*Game     `js:"game_data"`
-	RankingData  []*Rankings `js:"rankings_data"`
-	Lost         string      `js:"lost"`
-	Win          string      `js:"win"`
+	Jugando      bool      `js:"jugando"`
+	Ranking      bool      `js:"ranking"`
+	FoundLetters string    `js:"found_letters"`
+	GameData     []*Game   `js:"game_data"`
+	RankingData  *Rankings `js:"rankings_data"`
+	Lost         string    `js:"lost"`
+	Win          string    `js:"win"`
 
 	// outputs
 	Winner string `js:"winner"`
@@ -155,7 +155,7 @@ func (m *Model) GetRanking() {
 			Object: rObj,
 		}
 
-		m.RankingData = append(m.RankingData, rankings)
+		m.RankingData = rankings
 	}()
 }
 
