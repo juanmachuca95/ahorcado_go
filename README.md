@@ -1,33 +1,13 @@
 # 💀 (Ahorcado) Multiplayer - Golang
 
-Esta es mi implementación del juego del ahorcado en Golang.
+Este juego surgue de la necesidad de experimentar en el maravilloso mundo de los servicios gRPC y sus correspondientes implementaciones. Soy novato en la creación de juegos multijugador, por favor disfruta del juego teniendo en cuenta sus limitaciones. 
 
-* Mongodb
-* gRPC Server - Client 
-* Stream bidirectional 
-* Golang
-* Game
+Inspirado en el fantastico blog de 
+ https://jbrandhorst.com/post/gopherjs-client-grpc-server-3/ Lectura sin desperdicio 👍
+
+Esta implementación permite jugarlo de manera local. 
+Proximamente será subida una version online sencilla. 
 
 
-### ¿Como juego?
-El juego posee un panel de opciones, en el cual el usuario ingresa un nombre de usuario. 
-Una vez dentro del juego, compites con cualquiera que tambien este conectado al juego.
-
-```git clone https://github.com/juanmachuca95/ahorcado_go```
-
-```bash
-cd ahorcado_go
-./mygame
-```
-
-Que te diviertas!
-
-Si te gusto el juego regalame un estrella ⭐ a el repositorio
-
-Hecho por 🤓 <b>@juanmachuca95</b>
-
-Inspirado en el blog https://jbrandhorst.com/post/gopherjs-client-grpc-server-3/ 
-
-#### Gopherjs
-* gopherjs build --minify jsclient/client.go -o jsclient/html/index.js
+Hecho con mucho cariño <b>@juanmachuca95</b>
 
