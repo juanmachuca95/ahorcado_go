@@ -125,7 +125,13 @@ func (m *Model) Jugar() {
 		return
 	}
 
+	m.Ranking = false
 	m.GetGame()
+}
+
+func (m *Model) Salir() {
+	m.Jugando = false
+	WSConn.Close()
 }
 
 func (m *Model) GetRanking() {

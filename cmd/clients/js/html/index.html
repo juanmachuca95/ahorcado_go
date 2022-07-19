@@ -92,7 +92,7 @@
 		</div>
 
 		<div class="container bg-light" v-if="token">
-			<div class="row align-items-center" style="height: 80vh;">
+			<div class="row align-items-center" style="height: 82vh;">
 				<div class="col-md-6">
 					<div class="text-center">
 						<h1 class="pt-3 pb-0">💀 Ahorcado</h1>
@@ -108,8 +108,9 @@
 							</p>
 						</div>
 						
+						<a v-if="jugando" class="btn btn-danger" @click="Salir()" href="#salir"> Salir </a>
 						<a v-if="!jugando" class="btn btn-warning" @click="Jugar()" href="#jugar"> Jugar </a>
-						<a class="btn btn-warning" @click="GetRanking()" href="#ranking"> Ranking </a>
+						<a v-if="!jugando" class="btn btn-warning" @click="GetRanking()" href="#ranking"> Ranking </a>
 						
 						<p class="text-danger text-center text-small" v-if="error">
 							{{ error }}
@@ -136,7 +137,7 @@
 
 					</div>
 				</div>
-				<div class="col-md-6" v-if="jugando">
+				<div class="col-md-6 p-3" v-if="jugando">
 					<small> 🚀 <b>Username</b> - {{ username }}</small>
 					<p class="font-light text-muted"> Historial de jugadas </p>
 					<div class="scroll">
@@ -153,9 +154,8 @@
 					<p class="font-light text-muted"> Ranking </p>
 					<div class="scroll">
 						<ul>
-							{{ rankings_data }}
-							<li v-for="data in rankings_data">
-								✍️  {{ data.winner }} ➡️ ganados: {{ data.won }}
+							<li v-for="data in rankings_data.rankings">
+								🏁 {{ data.username }} 🏆 ganados: {{ data.won }}
 							</li>
 						</ul>
 					</div>
@@ -169,7 +169,7 @@
 				<div class="col-md-6 d-flex align-items-center">
 					<span class="text-muted">
 						<small>
-							Copyright © 2022 by Juan Gabriel Machuca. All rights reserved.
+							Copyright © 2022 by <a href="https://github.com/juanmachuca95/ahorcado_go">juanmachuac95</a>
 						</small>
 					</span>
 				</div>

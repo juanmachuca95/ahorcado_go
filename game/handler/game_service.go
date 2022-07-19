@@ -59,11 +59,7 @@ func (g *GameService) Start() {
 				Error:       msgErr,
 			}
 
-			log.Println("data user ", gameToSend.Usersend, gameToSend.Wordsend)
-			log.Println("code ", gameToSend.Status)
-			log.Println(gameToSend.Word, gameToSend.Encontrados)
 			for _, v := range g.connections {
-				log.Println("Enviando . . . ")
 				go v.Send(&gameToSend) // Usuario que lo envia
 			}
 			g.connLock.Unlock()
