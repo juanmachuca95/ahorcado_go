@@ -5,19 +5,13 @@ package main
 //go:generate bash -c "rm clientjs/html/*.js*"
 
 import (
-	"log"
-
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/joho/godotenv"
 	"github.com/juanmachuca95/ahorcado_go/cmd/clients/js/jsmodels"
 	vue "github.com/oskca/gopherjs-vue"
 )
 
 // Model is the state keeper of the app.
-
 func main() {
-	loadEnv()
-
 	m := &jsmodels.Model{
 		Object: js.Global.Get("Object").New(),
 	}
@@ -56,11 +50,4 @@ func main() {
 
 	// Create the VueJS viewModel using a struct pointer
 	vue.New("#app", m)
-}
-
-func loadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal()
-	}
 }

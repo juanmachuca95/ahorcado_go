@@ -23,11 +23,6 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-var (
-	MethodOverrideParam = "method"
-	TokenCookieName     = "token"
-)
-
 func main() {
 	LoadEnv()
 

@@ -12,7 +12,13 @@ var CreateGames = func() []interface{} {
 	var docs []interface{}
 
 	for i := 0; i < 100; i++ {
-		l := bson.D{{"word", strings.ToUpper(faker.Word())}, {"winner", nil}, {"finalizada", false}, {"ingame", false}, {"encontrados", nil}}
+		l := bson.D{
+			primitive.E{Key: "word", Value: strings.ToUpper(faker.Word())},
+			primitive.E{Key: "winner", Value: nil},
+			primitive.E{Key: "finalizada", Value: false},
+			primitive.E{Key: "ingame", Value: false},
+			primitive.E{Key: "encontrados", Value: nil},
+		}
 		docs = append(docs, l)
 	}
 
@@ -20,7 +26,12 @@ var CreateGames = func() []interface{} {
 }
 
 var CreateGame = func(word string) primitive.D {
-	game := bson.D{{"word", word}, {"winner", nil}, {"finalizada", false}, {"ingame", true}, {"encontrados", nil}}
+	game := bson.D{
+		primitive.E{Key: "word", Value: word},
+		primitive.E{Key: "winner", Value: nil},
+		primitive.E{Key: "finalizada", Value: false},
+		primitive.E{Key: "ingame", Value: true},
+		primitive.E{Key: "encontrados", Value: nil}}
 	return game
 }
 
@@ -46,8 +57,8 @@ var SetGame = func(objID primitive.ObjectID, status bool) (filter, update primit
 
 var GetRandomGame = func() []primitive.D {
 	return []bson.D{
-		{{"$match", bson.D{{"finalizada", false}}}},
-		{{"$sample", bson.D{{"size", 1}}}},
+		{primitive.E{Key: "$match", Value: bson.D{primitive.E{Key: "finalizada", Value: false}}}},
+		{primitive.E{Key: "$sample", Value: bson.D{primitive.E{Key: "size", Value: 1}}}},
 	}
 }
 

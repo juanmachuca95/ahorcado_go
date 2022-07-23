@@ -2,6 +2,7 @@ package handler
 
 import (
 	"io"
+	"log"
 
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 )
@@ -32,7 +33,10 @@ func (c *Connection) Close() error {
 func (c *Connection) Send(msg *ah.Game) {
 	defer func() {
 		// Ignore any errors about sending on a closed channel
-		recover()
+		err := recover()
+		if err != nil {
+			log.Println("Cannot send message to connection closed")
+		}
 	}()
 	c.send <- msg
 }
@@ -42,7 +46,10 @@ func (c *Connection) start() {
 	for running {
 		select {
 		case msg := <-c.send:
-			c.conn.Send(msg) // Ignoring the error, they just don't get this message.
+			err := c.conn.Send(msg) // Ignoring the error, they just don't get this message.
+			if err != nil {
+				log.Println(err)
+			}
 		case <-c.quit:
 			running = false
 		}

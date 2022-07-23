@@ -11,26 +11,24 @@ import (
 	"github.com/juanmachuca95/ahorcado_go/pkg/frames"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 	"github.com/pterm/pterm"
-	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var tls bool
-var caFile, serverAddr, serverHostOverride string
+var (
+	// var tls bool
+	// caFile     string
+	serverAddr string
+	// var serverHostOverride string
+)
 
 func init() {
-	tls = *flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	caFile = *flag.String("ca_file", "", "The file containing the CA root cert file")
+	//tls = *flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
+	// caFile = *flag.String("ca_file", "", "The file containing the CA root cert file")
 	serverAddr = *flag.String("addr", "localhost:8080", "The server address in the format of host:port")
-	serverHostOverride = *flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
+	//serverHostOverride = *flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
 }
-
-var encontrados = []string{}
-var collection *mongo.Collection
-var ctx = context.TODO()
-var user string = "default"
 
 func main() {
 	flag.Parse()
@@ -44,7 +42,7 @@ func main() {
 	client := ah.NewAhorcadoClient(conn)
 
 	Header()
-	var leaveGame bool = false
+	var leaveGame bool
 	var myInput string
 	var myUser string
 
@@ -65,7 +63,6 @@ func main() {
 			if err != nil {
 				pterm.Warning.Println("Fallo al activar stream del juego - error: ", err.Error())
 				activateStream = false
-				leaveGame = true
 				return
 			}
 
@@ -130,7 +127,10 @@ func main() {
 				}
 			}
 
-			stream.CloseSend()
+			err = stream.CloseSend()
+			if err != nil {
+				panic(err)
+			}
 			<-waitc
 		}
 
@@ -142,7 +142,6 @@ func main() {
 			game, err := GetRandomGame(client)
 			if err != nil {
 				pterm.Warning.Println("No fue posible obtener un juego activo.")
-				leaveGame = true
 				return
 			}
 
@@ -180,9 +179,10 @@ func Header() {
 	header := pterm.DefaultHeader.WithBackgroundStyle(pterm.DefaultHeader.BackgroundStyle)
 	pterm.DefaultCenter.Println(header.Sprintf("Made by @juanmachuca95"))
 
-	pterm.DefaultBigText.WithLetters(
-		pterm.NewLettersFromStringWithRGB("Ahorcado", pterm.NewRGB(255, 215, 0))).
-		Render()
+	err := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromStringWithRGB("Ahorcado", pterm.NewRGB(255, 215, 0))).Render()
+	if err != nil {
+		log.Fatal("Cannot render information print")
+	}
 }
 
 func Panel() {

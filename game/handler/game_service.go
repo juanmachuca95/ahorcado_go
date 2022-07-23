@@ -35,7 +35,7 @@ func NewGameService(db *mongo.Database) *GameService {
 
 func (g *GameService) Start() {
 	running := true
-	var msgErr string = ""
+	var msgErr string
 	for running {
 		select {
 		case msg := <-g.broadcast:

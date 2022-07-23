@@ -6,16 +6,16 @@ import (
 )
 
 var GetTop = func() (matchStage, limitStage, groupStage, sortStage primitive.D) {
-	matchStage = bson.D{{"$match", bson.D{{"finalizada", true}}}}
-	limitStage = bson.D{{"$limit", 10}}
+	matchStage = bson.D{primitive.E{Key: "$match", Value: bson.D{primitive.E{Key: "finalizada", Value: true}}}}
+	limitStage = bson.D{primitive.E{Key: "$limit", Value: 10}}
 	groupStage = bson.D{
-		{"$group", bson.D{
-			{"_id", "$winner"},
-			{"winner", bson.D{{"$first", "$winner"}}},
-			{"won", bson.D{
-				{"$sum", 1},
+		primitive.E{Key: "$group", Value: bson.D{
+			primitive.E{Key: "_id", Value: "$winner"},
+			primitive.E{Key: "winner", Value: bson.D{primitive.E{Key: "$first", Value: "$winner"}}},
+			primitive.E{Key: "won", Value: bson.D{
+				primitive.E{Key: "$sum", Value: 1},
 			}},
 		}}}
-	sortStage = bson.D{{"$sort", bson.D{{"won", -1}}}}
+	sortStage = bson.D{primitive.E{Key: "$sort", Value: bson.D{primitive.E{Key: "won", Value: -1}}}}
 	return
 }
