@@ -21,3 +21,20 @@ func TestGetTop(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, len(rankings) > 0)
 }
+
+func BenchmarkGetTop(b *testing.B) {
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		panic(err)
+	}
+	db := database.Connect()
+	storage := NewRankingGateway(db)
+
+	for n := 0; n < b.N; n++ {
+		_, err := storage.getTop()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+}

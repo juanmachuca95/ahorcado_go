@@ -7,7 +7,6 @@ import (
 
 	"github.com/juanmachuca95/ahorcado_go/game/models"
 	"github.com/juanmachuca95/ahorcado_go/game/querys"
-	q "github.com/juanmachuca95/ahorcado_go/game/querys"
 	"github.com/juanmachuca95/ahorcado_go/pkg/servicejwt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -30,7 +29,7 @@ func NewAuthStorageGateway(db *mongo.Database) AuthStorage {
 
 func (s *AuthService) login(l *models.Login) (string, error) {
 	coll := s.Collection(collection)
-	filter := q.Login(l.Username)
+	filter := querys.Login(l.Username)
 
 	var result models.Login
 	err := coll.FindOne(context.TODO(), filter, nil).Decode(&result)
@@ -53,7 +52,7 @@ func (s *AuthService) login(l *models.Login) (string, error) {
 
 func (s *AuthService) register(l *models.Login) (string, error) {
 	coll := s.Collection(collection)
-	filter := q.Login(l.Username)
+	filter := querys.Login(l.Username)
 
 	var user models.Login
 	err := coll.FindOne(context.TODO(), filter, nil).Decode(&user)

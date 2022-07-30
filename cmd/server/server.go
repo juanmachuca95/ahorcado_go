@@ -32,6 +32,13 @@ func main() {
 		panic("cannot create tcp connection" + err.Error())
 	}
 
+	// cmux is a generic Go library to multiplex connections based on their payload. Using cmux, you can serve gRPC, SSH, HTTPS, HTTP, Go RPC,
+	// and pretty much any other protocol on the same TCP listener.
+	/* cmx := cmux.New(listener)
+	grpcL := cmx.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
+	httpL := cmx.Match(cmux.HTTP1Fast()) */
+	// trpcL := cmx.Match(cmux.Any())
+
 	// Database
 	db := database.Connect()
 
@@ -60,7 +67,6 @@ func main() {
 	// Enable reflection
 	reflection.Register(serv)
 
-	// Serve gRPC server
 	log.Println("Serving gRPC on 0.0.0.0:8080")
 	go func() {
 		log.Fatalln(serv.Serve(listener))
@@ -91,7 +97,7 @@ func main() {
 		Handler: handler,
 	}
 
-	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8090")
+	log.Println("Serving gRPC-Gateway on 0.0.0.0:8090")
 	log.Fatalln(gwServer.ListenAndServe())
 }
 

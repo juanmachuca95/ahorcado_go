@@ -54,7 +54,8 @@ type Model struct {
 }
 
 func (m *Model) Login() {
-	req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/login")
+	// req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/login")
+	req := xhr.NewRequest("POST", "http://localhost:8080/api/v1/login")
 	req.SetRequestHeader("Content-Type", "application/json")
 	login := &RequestLogin{Object: js.Global.Get("Object").New()}
 	login.Username = m.Username
@@ -87,7 +88,8 @@ func (m *Model) Login() {
 }
 
 func (m *Model) Register() {
-	req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/register")
+	//req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/register")
+	req := xhr.NewRequest("POST", "http://localhost:8080/api/v1/register")
 	req.SetRequestHeader("Content-Type", "application/json")
 	login := &RequestLogin{Object: js.Global.Get("Object").New()}
 	login.Username = m.Username
@@ -135,7 +137,8 @@ func (m *Model) Salir() {
 }
 
 func (m *Model) GetRanking() {
-	req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/ranking")
+	//req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/ranking")
+	req := xhr.NewRequest("GET", "http://localhost:8080/api/v1/ranking")
 	req.SetRequestHeader("Content-Type", "application/json")
 	req.SetRequestHeader("Authorization", m.Token)
 
@@ -166,7 +169,8 @@ func (m *Model) GetRanking() {
 }
 
 func (m *Model) GetGame() {
-	req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/game")
+	//req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/game")
+	req := xhr.NewRequest("GET", "http://localhost:8080/api/v1/game")
 	req.SetRequestHeader("Content-Type", "application/json")
 	req.SetRequestHeader("Authorization", m.Token)
 
@@ -203,7 +207,8 @@ func (m *Model) GetGame() {
 func (m *Model) Connect() {
 	go func() {
 		var err error
-		WSConn, err = websocket.Dial("ws://localhost:8090/api/v1/playing")
+		//WSConn, err = websocket.Dial("ws://localhost:8090/api/v1/playing")
+		WSConn, err = websocket.Dial("ws://localhost:8080/api/v1/playing")
 		if err != nil {
 			panic(err)
 		}
