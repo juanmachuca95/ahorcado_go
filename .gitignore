@@ -1,4 +1,5 @@
 .env
 
-cert
-!cert/gen.sh
+gencert/*
+
+!gencert/gen.sh
