@@ -1,3 +1,5 @@
 .env
 
 cert
+
+!cert/gen.sh
