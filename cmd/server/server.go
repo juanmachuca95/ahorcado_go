@@ -2,11 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"crypto/tls"
 	"log"
-	"net"
 	"net/http"
-	"os"
+	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
@@ -15,69 +14,64 @@ import (
 	"github.com/juanmachuca95/ahorcado_go/pkg/interceptor"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 	au "github.com/juanmachuca95/ahorcado_go/protos/auth"
-
 	"github.com/rs/cors"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
-func main() {
-	LoadEnv()
-
-	addr := fmt.Sprintf("0.0.0.0:%s", os.Getenv("SERVER_PORT"))
-	listener, err := net.Listen("tcp", addr)
+func LoadTLSCredentials() (credentials.TransportCredentials, error) {
+	// load server's certificate and private key
+	serverCert, err := tls.LoadX509KeyPair("cert/server-cert.pem", "cert/server-key.pem")
 	if err != nil {
-		panic("cannot create tcp connection" + err.Error())
+		return nil, err
 	}
 
-	// cmux is a generic Go library to multiplex connections based on their payload. Using cmux, you can serve gRPC, SSH, HTTPS, HTTP, Go RPC,
-	// and pretty much any other protocol on the same TCP listener.
-	/* cmx := cmux.New(listener)
-	grpcL := cmx.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
-	httpL := cmx.Match(cmux.HTTP1Fast()) */
-	// trpcL := cmx.Match(cmux.Any())
+	config := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		ClientAuth:   tls.NoClientCert,
+	}
+
+	return credentials.NewTLS(config), nil
+}
+
+func main() {
+	LoadEnv()
+	// context
+	ctx := context.Background()
 
 	// Database
 	db := database.Connect()
-
 	// Services
 	authServ := handler.NewAuthService(db)
 	gameServ := handler.NewGameService(db)
 
-	// Seeder
-	/* gtwStorage := gtw.NewGameGateway(db)
-	if err := gtwStorage.CreateGames(); err != nil {
-		log.Fatal(err)
+	// load TLS credentials
+	tlsCredentials, err := LoadTLSCredentials()
+	if err != nil {
+		log.Fatal("cannot load TLS credentials: ", err)
 	}
-	*/
 
 	// Middleware
 	authInterceptor := interceptor.NewAuthInterceptor()
-	serv := grpc.NewServer(
+	servGrpc := grpc.NewServer(
+		grpc.Creds(tlsCredentials),
 		grpc.UnaryInterceptor(authInterceptor.UnaryInterceptor()),
 		grpc.StreamInterceptor(authInterceptor.StreamInterceptor()),
 	)
 
 	// Registro de servicios
-	ah.RegisterAhorcadoServer(serv, gameServ)
-	au.RegisterAuthServer(serv, authServ)
+	ah.RegisterAhorcadoServer(servGrpc, gameServ)
+	au.RegisterAuthServer(servGrpc, authServ)
 
 	// Enable reflection
-	reflection.Register(serv)
+	reflection.Register(servGrpc)
 
-	log.Println("Serving gRPC on 0.0.0.0:8080")
-	go func() {
-		log.Fatalln(serv.Serve(listener))
-	}()
-
-	conn, err := grpc.DialContext(
-		context.Background(),
-		"0.0.0.0:8080",
-		grpc.WithBlock(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
 		log.Fatalln("Failed to dial server:", err)
 	}
@@ -93,12 +87,22 @@ func main() {
 
 	handler := cors.AllowAll().Handler(wsproxy.WebsocketProxy(gwmux))
 	gwServer := &http.Server{
-		Addr:    ":8090",
+		Addr:    ":8080",
 		Handler: handler,
 	}
 
-	log.Println("Serving gRPC-Gateway on 0.0.0.0:8090")
-	log.Fatalln(gwServer.ListenAndServe())
+	log.Println("Serving gRPC & gRPC-Gateway on 0.0.0.0:8080")
+	log.Fatalln(http.ListenAndServe(":8080", grpcHandlerFunc(servGrpc, gwServer.Handler)))
+}
+
+func grpcHandlerFunc(grpcServer *grpc.Server, otherHandler http.Handler) http.Handler {
+	return h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+			grpcServer.ServeHTTP(w, r)
+		} else {
+			otherHandler.ServeHTTP(w, r)
+		}
+	}), &http2.Server{})
 }
 
 func LoadEnv() {
