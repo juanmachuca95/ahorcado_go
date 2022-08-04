@@ -3,3 +3,4 @@
 cert/*
 
 !cert/gen.sh
+!cert/server-ext.cnf
