@@ -41,6 +41,6 @@ up-server:
 	go run server/server.go
 
 create-cert:
-	cd cert; ./gen.sh; cd ..
+	cd gencert; ./gen.sh; cd ..
 
 coverage: 
