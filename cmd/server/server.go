@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"log"
 	"net/http"
 	"strings"
@@ -20,12 +19,11 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
-func LoadTLSCredentials() (credentials.TransportCredentials, error) {
+/* func LoadTLSCredentials() (credentials.TransportCredentials, error) {
 	// load server's certificate and private key
 	serverCert, err := tls.LoadX509KeyPair("cert/server-cert.pem", "cert/server-key.pem")
 	if err != nil {
@@ -38,7 +36,7 @@ func LoadTLSCredentials() (credentials.TransportCredentials, error) {
 	}
 
 	return credentials.NewTLS(config), nil
-}
+} */
 
 func main() {
 	LoadEnv()
