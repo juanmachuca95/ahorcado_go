@@ -44,3 +44,4 @@ create-cert:
 	cd cert; ./gen.sh; cd ..
 
 coverage: 
+	go test ./... -coverprofile=coverage.out -count=1

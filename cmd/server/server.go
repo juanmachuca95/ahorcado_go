@@ -21,6 +21,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -51,15 +52,15 @@ func main() {
 	gameServ := handler.NewGameService(db)
 
 	// load TLS credentials
-	tlsCredentials, err := LoadTLSCredentials()
+	/* tlsCredentials, err := LoadTLSCredentials()
 	if err != nil {
 		log.Fatal("cannot load TLS credentials: ", err)
-	}
+	} */
 
 	// Middleware
 	authInterceptor := interceptor.NewAuthInterceptor()
 	servGrpc := grpc.NewServer(
-		grpc.Creds(tlsCredentials),
+		//grpc.Creds(tlsCredentials),
 		grpc.UnaryInterceptor(authInterceptor.UnaryInterceptor()),
 		grpc.StreamInterceptor(authInterceptor.StreamInterceptor()),
 	)
@@ -71,7 +72,8 @@ func main() {
 	// Enable reflection
 	reflection.Register(servGrpc)
 
-	conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(tlsCredentials))
+	//conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(tlsCredentials))
+	conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln("Failed to dial server:", err)
 	}

@@ -5,7 +5,8 @@ ADD . /app
 WORKDIR /app
 
 EXPOSE 8080
+EXPOSE 8090
 
-RUN go build -o apiserver server/server.go
+RUN go build -o apiserver cmd/server/server.go
 
 CMD [ "./apiserver" ]
