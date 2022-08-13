@@ -39,3 +39,9 @@ clean-site-github:
 
 up-server:
 	go run server/server.go
+
+create-cert:
+	cd cert; ./gen.sh; cd ..
+
+coverage: 
+	go test ./... -coverprofile=coverage.out -count=1

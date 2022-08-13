@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+      - "8090:8090"
     networks:
       ahorcado:
     container_name: ahorcadogo

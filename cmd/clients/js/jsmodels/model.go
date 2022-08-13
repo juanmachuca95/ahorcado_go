@@ -1,6 +1,7 @@
 package jsmodels
 
 import (
+	"fmt"
 	"net"
 	"strings"
 
@@ -12,6 +13,14 @@ import (
 )
 
 var WSConn net.Conn
+
+const (
+	_login    = "login"
+	_register = "register"
+	_game     = "game"
+	_ranking  = "ranking"
+	_playing  = "playing"
+)
 
 type Model struct {
 	*js.Object
@@ -55,7 +64,7 @@ type Model struct {
 
 func (m *Model) Login() {
 	// req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/login")
-	req := xhr.NewRequest("POST", "http://localhost:8080/api/v1/login")
+	req := xhr.NewRequest("POST", setUrl(_login))
 	req.SetRequestHeader("Content-Type", "application/json")
 	login := &RequestLogin{Object: js.Global.Get("Object").New()}
 	login.Username = m.Username
@@ -89,7 +98,7 @@ func (m *Model) Login() {
 
 func (m *Model) Register() {
 	//req := xhr.NewRequest("POST", "http://localhost:8090/api/v1/register")
-	req := xhr.NewRequest("POST", "http://localhost:8080/api/v1/register")
+	req := xhr.NewRequest("POST", setUrl(_register))
 	req.SetRequestHeader("Content-Type", "application/json")
 	login := &RequestLogin{Object: js.Global.Get("Object").New()}
 	login.Username = m.Username
@@ -138,7 +147,7 @@ func (m *Model) Salir() {
 
 func (m *Model) GetRanking() {
 	//req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/ranking")
-	req := xhr.NewRequest("GET", "http://localhost:8080/api/v1/ranking")
+	req := xhr.NewRequest("GET", setUrl(_ranking))
 	req.SetRequestHeader("Content-Type", "application/json")
 	req.SetRequestHeader("Authorization", m.Token)
 
@@ -170,7 +179,7 @@ func (m *Model) GetRanking() {
 
 func (m *Model) GetGame() {
 	//req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/game")
-	req := xhr.NewRequest("GET", "http://localhost:8080/api/v1/game")
+	req := xhr.NewRequest("GET", setUrl(_game))
 	req.SetRequestHeader("Content-Type", "application/json")
 	req.SetRequestHeader("Authorization", m.Token)
 
@@ -208,7 +217,7 @@ func (m *Model) Connect() {
 	go func() {
 		var err error
 		//WSConn, err = websocket.Dial("ws://localhost:8090/api/v1/playing")
-		WSConn, err = websocket.Dial("ws://localhost:8080/api/v1/playing")
+		WSConn, err = websocket.Dial(setUrl(_playing))
 		if err != nil {
 			panic(err)
 		}
@@ -332,4 +341,24 @@ func (m *Model) Reset() {
 	m.GameData = []*Game{}
 	m.FoundLetters = ""
 	m.Tries = 6
+}
+
+func setUrl(source string) string {
+	path := "0.0.0.0:8080/api/v1"
+	pHttp := "http"
+	pWs := "ws"
+	switch source {
+	case _login:
+		return fmt.Sprintf("%s://%s/%s", pHttp, path, source)
+	case _register:
+		return fmt.Sprintf("%s://%s/%s", pHttp, path, source)
+	case _ranking:
+		return fmt.Sprintf("%s://%s/%s", pHttp, path, source)
+	case _game:
+		return fmt.Sprintf("%s://%s/%s", pWs, path, source)
+	case _playing:
+		return fmt.Sprintf("%s://%s/%s", pWs, path, source)
+	default:
+		return ""
+	}
 }
