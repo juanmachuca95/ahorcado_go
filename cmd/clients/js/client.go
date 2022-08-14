@@ -10,10 +10,6 @@ import (
 	vue "github.com/oskca/gopherjs-vue"
 )
 
-/* func LoadTLSCredentials() {
-
-} */
-
 // Model is the state keeper of the app.
 func main() {
 	m := &jsmodels.Model{

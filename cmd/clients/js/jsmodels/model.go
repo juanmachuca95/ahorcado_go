@@ -2,6 +2,7 @@ package jsmodels
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -179,6 +180,7 @@ func (m *Model) GetRanking() {
 
 func (m *Model) GetGame() {
 	//req := xhr.NewRequest("GET", "http://localhost:8090/api/v1/game")
+	log.Println(_game, m.Token)
 	req := xhr.NewRequest("GET", setUrl(_game))
 	req.SetRequestHeader("Content-Type", "application/json")
 	req.SetRequestHeader("Authorization", m.Token)
@@ -186,7 +188,7 @@ func (m *Model) GetGame() {
 	go func() {
 		err := req.Send(nil)
 		if err != nil {
-			panic(err)
+			panic(err.Error())
 		}
 
 		rObj, err := json.Unmarshal(req.ResponseText)
@@ -344,7 +346,8 @@ func (m *Model) Reset() {
 }
 
 func setUrl(source string) string {
-	path := "0.0.0.0:8080/api/v1"
+	// path := "0.0.0.0:8080/api/v1" // on local
+	path := "137.184.232.156:8080/api/v1" // on deploy no production
 	pHttp := "http"
 	pWs := "ws"
 	switch source {
@@ -355,7 +358,7 @@ func setUrl(source string) string {
 	case _ranking:
 		return fmt.Sprintf("%s://%s/%s", pHttp, path, source)
 	case _game:
-		return fmt.Sprintf("%s://%s/%s", pWs, path, source)
+		return fmt.Sprintf("%s://%s/%s", pHttp, path, source)
 	case _playing:
 		return fmt.Sprintf("%s://%s/%s", pWs, path, source)
 	default:
