@@ -45,3 +45,6 @@ create-cert:
 
 coverage: 
 	go test ./... -coverprofile=coverage.out -count=1
+
+tls-generate:
+	openssl  x509  -req  -days 365  -in localhost.csr  -signkey localhost.key  -out localhost.crt

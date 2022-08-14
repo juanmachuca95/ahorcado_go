@@ -58,7 +58,7 @@ func main() {
 	// Middleware
 	authInterceptor := interceptor.NewAuthInterceptor()
 	servGrpc := grpc.NewServer(
-		//grpc.Creds(tlsCredentials),
+		// grpc.Creds(tlsCredentials),
 		grpc.UnaryInterceptor(authInterceptor.UnaryInterceptor()),
 		grpc.StreamInterceptor(authInterceptor.StreamInterceptor()),
 	)
@@ -70,7 +70,11 @@ func main() {
 	// Enable reflection
 	reflection.Register(servGrpc)
 
-	//conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(tlsCredentials))
+	/* conn, err := grpc.DialContext(
+		ctx,
+		"0.0.0.0:8080",
+		grpc.WithTransportCredentials(tlsCredentials),
+	) */
 	conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln("Failed to dial server:", err)
