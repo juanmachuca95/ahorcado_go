@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"net/http"
 	"strings"
@@ -19,11 +20,11 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
-/* func LoadTLSCredentials() (credentials.TransportCredentials, error) {
+func LoadTLSCredentials() (credentials.TransportCredentials, error) {
 	// load server's certificate and private key
 	serverCert, err := tls.LoadX509KeyPair("cert/server-cert.pem", "cert/server-key.pem")
 	if err != nil {
@@ -36,7 +37,7 @@ import (
 	}
 
 	return credentials.NewTLS(config), nil
-} */
+}
 
 func main() {
 	LoadEnv()
@@ -50,15 +51,15 @@ func main() {
 	gameServ := handler.NewGameService(db)
 
 	// load TLS credentials
-	/* tlsCredentials, err := LoadTLSCredentials()
+	tlsCredentials, err := LoadTLSCredentials()
 	if err != nil {
 		log.Fatal("cannot load TLS credentials: ", err)
-	} */
+	}
 
 	// Middleware
 	authInterceptor := interceptor.NewAuthInterceptor()
 	servGrpc := grpc.NewServer(
-		// grpc.Creds(tlsCredentials),
+		grpc.Creds(tlsCredentials),
 		grpc.UnaryInterceptor(authInterceptor.UnaryInterceptor()),
 		grpc.StreamInterceptor(authInterceptor.StreamInterceptor()),
 	)
@@ -70,12 +71,12 @@ func main() {
 	// Enable reflection
 	reflection.Register(servGrpc)
 
-	/* conn, err := grpc.DialContext(
+	conn, err := grpc.DialContext(
 		ctx,
 		"0.0.0.0:8080",
 		grpc.WithTransportCredentials(tlsCredentials),
-	) */
-	conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	)
+	// conn, err := grpc.DialContext(ctx, "0.0.0.0:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln("Failed to dial server:", err)
 	}
