@@ -14,7 +14,6 @@ require (
 	github.com/oskca/gopherjs-vue v0.0.0-20170225023325-ab40c9e57345
 	github.com/pterm/pterm v0.12.41
 	github.com/rs/cors v1.8.2
-	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75
 	go.mongodb.org/mongo-driver v1.9.1
@@ -42,6 +41,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.0.2 // indirect
 	github.com/xdg-go/stringprep v1.0.2 // indirect
