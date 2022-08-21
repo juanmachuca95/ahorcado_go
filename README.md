@@ -11,20 +11,5 @@ Proximamente será subida una version online sencilla.
 
 Hecho con mucho cariño <b>@juanmachuca95</b>
 
-Implementación de certificado tls - Server GRPC - REST. Nota: la flag -insecure es necesaria
-
-```bash
- ./grpcurl -insecure localhost:8080 protos.Ahorcado.GetGame
-{
-  "id": "62d41462b12b61ea29b74b5f",
-  "word": "CORRUPTI",
-  "encontrados": [
-    "T",
-    "C",
-    "O"
-  ]
-}
-
-```
 
 

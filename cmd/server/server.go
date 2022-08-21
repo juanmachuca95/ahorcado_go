@@ -42,7 +42,9 @@ func init() {
 
 func main() {
 	LoadEnv()
-	Start()
+	if err := Start(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func grpcHandlerFunc(grpcServer *grpc.Server, otherHandler http.Handler) http.Handler {

@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"io/ioutil"
+	"os"
 )
 
 // 3. read server cert & key
@@ -28,7 +28,7 @@ func ConfigTLS(serverCert tls.Certificate, certPool *x509.CertPool) *tls.Config 
 
 func GetCertPool(caFile string) (*x509.CertPool, error) {
 	// 1.read ca's cert, verify to client's certificate
-	caPem, err := ioutil.ReadFile(caFile) // "cert/ca-cert.pem"
+	caPem, err := os.ReadFile(caFile) // "cert/ca-cert.pem"
 	if err != nil {
 		return nil, err
 	}
