@@ -37,10 +37,10 @@ setup-site-github:
 clean-site-github:
 	rm -rf docs/*
 
-up-server:
-	go run server/server.go
+start:
+	go run cmd/server/server.go
 
-create-cert:
+gen-cert:
 	cd cert; ./gen.sh; cd ..
 
 coverage: 
