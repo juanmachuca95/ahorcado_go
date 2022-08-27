@@ -346,9 +346,9 @@ func (m *Model) Reset() {
 }
 
 func setUrl(source string) string {
-	// path := "0.0.0.0:8080/api/v1" // on local
-	path := "137.184.232.156:8080/api/v1" // on deploy no production
-	pHttp := "http"
+	path := "0.0.0.0:8080/api/v1" // on local
+	// path := "137.184.232.156:8080/api/v1" // on deploy no production
+	pHttp := "https"
 	pWs := "ws"
 	switch source {
 	case _login:
