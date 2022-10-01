@@ -48,3 +48,11 @@ coverage:
 
 tls-generate:
 	openssl  x509  -req  -days 365  -in localhost.csr  -signkey localhost.key  -out localhost.crt
+
+
+test:
+	protoc \
+    --include_imports \
+    --include_source_info \
+    --descriptor_set_out out.pb \
+    protos/ahorcado/proto.proto

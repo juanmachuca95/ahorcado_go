@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -12,7 +10,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
-	"github.com/juanmachuca95/ahorcado_go/cmd/server/utils"
 	"github.com/juanmachuca95/ahorcado_go/game/handler"
 	database "github.com/juanmachuca95/ahorcado_go/pkg/database/mongo"
 	"github.com/juanmachuca95/ahorcado_go/pkg/interceptor"
@@ -23,25 +20,24 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"log"
+
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
-var log grpclog.LoggerV2
 var (
-	cert string = "cert/server-cert.pem"
-	key  string = "cert/server-key.pem"
+	port string
 )
-
-func init() {
-	log = grpclog.NewLoggerV2(os.Stdout, ioutil.Discard, ioutil.Discard)
-	grpclog.SetLoggerV2(log)
-}
 
 func main() {
 	LoadEnv()
+	port = os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	if err := Start(); err != nil {
 		log.Fatal(err)
 	}
@@ -67,24 +63,11 @@ func LoadEnv() {
 }
 
 func makeGrpcServer(address string) (*grpc.ClientConn, *grpc.Server) {
-	certPool, err := utils.GetCertPool("cert/ca-cert.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	serverCert, err := utils.ServerCert()
-	if err != nil {
-		panic(err)
-	}
-
-	configTLS := utils.ConfigTLS(*serverCert, certPool)
-	tlsCredentials := credentials.NewTLS(configTLS)
-
 	authInterceptor := interceptor.NewAuthInterceptor()
 	opts := []grpc.ServerOption{
-		grpc.Creds(tlsCredentials),
 		grpc.UnaryInterceptor(authInterceptor.UnaryInterceptor()),
 		grpc.StreamInterceptor(authInterceptor.StreamInterceptor()),
+		grpc.Creds(insecure.NewCredentials()),
 	}
 
 	// Database
@@ -98,18 +81,14 @@ func makeGrpcServer(address string) (*grpc.ClientConn, *grpc.Server) {
 	ah.RegisterAhorcadoServer(grpcServer, gameServ)
 	au.RegisterAuthServer(grpcServer, authServ)
 
-	addr := fmt.Sprintf("localhost:%d", 8080)
-	dcreds := credentials.NewTLS(&tls.Config{
-		ServerName: addr,
-		RootCAs:    certPool,
-	})
 	conn, err := grpc.DialContext(
 		context.Background(),
 		address,
-		grpc.WithTransportCredentials(dcreds),
+		//grpc.WithTransportCredentials(dcreds)
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Error("Failed to dial server", err.Error())
+		log.Println("Failed to dial server", err.Error())
 	}
 
 	// Enable reflection
@@ -129,31 +108,18 @@ func makeHttpServer(conn *grpc.ClientConn) *runtime.ServeMux {
 }
 
 func Start() error {
-	addr := fmt.Sprintf("localhost:%d", 8080)
-
+	addr := fmt.Sprintf("0.0.0.0:%s", port)
 	_, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatal("failed to listen: %v", err.Error())
+		log.Fatalf("failed to listen: %v", err.Error())
 	}
 
 	conn, grpcServer := makeGrpcServer(addr)
 	router := makeHttpServer(conn)
 
-	log.Info("Starting server on addr : " + addr)
-	certPool, err := utils.GetCertPool("cert/ca-cert.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	serverCert, err := utils.ServerCert()
-	if err != nil {
-		panic(err)
-	}
-
-	configTLS := utils.ConfigTLS(*serverCert, certPool)
-	configTLS.NextProtos = []string{"h2"}
+	log.Println("Starting server on addr : " + addr)
 	handler := cors.Default().Handler(wsproxy.WebsocketProxy(router))
 
-	err = http.ListenAndServeTLS(":8080", cert, key, grpcHandlerFunc(grpcServer, handler))
+	err = http.ListenAndServe(":"+port, grpcHandlerFunc(grpcServer, handler))
 	return err
 }

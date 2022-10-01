@@ -12,7 +12,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var collection = "users"
+var (
+	collection = "users"
+	coll       *mongo.Collection
+)
 
 type AuthStorage interface {
 	login(*models.Login) (string, error)
@@ -28,7 +31,7 @@ func NewAuthStorageGateway(db *mongo.Database) AuthStorage {
 }
 
 func (s *AuthService) login(l *models.Login) (string, error) {
-	coll := s.Collection(collection)
+	coll = s.Collection(collection)
 	filter := querys.Login(l.Username)
 
 	var result models.Login
@@ -51,7 +54,7 @@ func (s *AuthService) login(l *models.Login) (string, error) {
 }
 
 func (s *AuthService) register(l *models.Login) (string, error) {
-	coll := s.Collection(collection)
+	coll = s.Collection(collection)
 	filter := querys.Login(l.Username)
 
 	var user models.Login

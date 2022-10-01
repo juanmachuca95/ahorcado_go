@@ -27,5 +27,7 @@ Proximamente será subida una version online sencilla.
 
 Hecho con mucho cariño <b>@juanmachuca95</b>
 
-
-
+## Seguir estudiando google cloud para implementar la api gRPC Gateway
+https://cloud.google.com/api-gateway/docs/grpc-overview
+https://medium.com/swlh/rest-over-grpc-with-grpc-gateway-for-go-9584bfcbb835
+https://cloud.google.com/endpoints/docs/grpc/transcoding
