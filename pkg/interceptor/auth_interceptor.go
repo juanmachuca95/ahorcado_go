@@ -83,9 +83,9 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 }
 
 func accessibleRoles() map[string][]string {
-	const gameServicePath = "/protos.Ahorcado/"
+	//const gameServicePath = "/protos.Ahorcado/"
 
 	return map[string][]string{
-		gameServicePath + "GetRandomGame": {"player"},
+		//gameServicePath + "GetRandomGame": {"player"},
 	}
 }

@@ -19,12 +19,13 @@ func TestAuthStorageLogin(t *testing.T) {
 	mt.Run("success_login", func(mt *mtest.T) {
 		coll = mt.Coll
 		expectedUser := models.Login{
-			Username: "john",
-			Password: "Machuca12",
+			Username: "juan",
+			Password: "123456",
 		}
 
 		passHashed, err := bcrypt.GenerateFromPassword([]byte(expectedUser.Password), bcrypt.DefaultCost)
 		require.NoError(t, err)
+
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "foo.bar", mtest.FirstBatch, bson.D{
 			primitive.E{Key: "username", Value: expectedUser.Username},
 			primitive.E{Key: "password", Value: passHashed},
@@ -32,6 +33,30 @@ func TestAuthStorageLogin(t *testing.T) {
 
 		authGtw := NewAuthStorageGateway(mt.DB)
 		token, err := authGtw.login(&expectedUser)
+		assert.Nil(t, err)
+		assert.NotNil(t, token)
+	})
+
+}
+
+func TestAuthStorageRegister(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+
+	mt.Run("success_register", func(mt *mtest.T) {
+		coll = mt.Coll
+		expectedUser := models.Login{
+			Username: "juan",
+			Password: "123456",
+		}
+
+		// error to findOne duplicate
+		mt.AddMockResponses(mtest.CreateWriteErrorsResponse())
+
+		// success for insert
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		authGtw := NewAuthStorageGateway(mt.DB)
+		token, err := authGtw.register(&expectedUser)
 		assert.Nil(t, err)
 		assert.NotNil(t, token)
 	})

@@ -3,7 +3,6 @@ package main
 //go:generate gopherjs build -m jsclient/client.go -o jsclient/html/index.js
 //go:generate go-bindata -pkg compiled -nometadata -o jsclient/compiled/client.go -prefix html ./jsclient/html
 //go:generate bash -c "rm clientjs/html/*.js*"
-
 import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/juanmachuca95/ahorcado_go/cmd/clients/js/jsmodels"

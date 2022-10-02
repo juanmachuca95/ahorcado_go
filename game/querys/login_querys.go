@@ -7,5 +7,8 @@ import (
 )
 
 var Register = func(l *models.Login) bson.D {
-	return bson.D{primitive.E{Key: "username", Value: l.Username}, primitive.E{Key: "password", Value: l.Password}}
+	return bson.D{
+		primitive.E{Key: "username", Value: l.Username},
+		primitive.E{Key: "password", Value: l.Password},
+	}
 }

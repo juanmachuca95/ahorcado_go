@@ -36,7 +36,7 @@ func (s *AuthService) login(l *models.Login) (string, error) {
 
 	var result models.Login
 	err := coll.FindOne(context.TODO(), filter, nil).Decode(&result)
-	if err != nil {
+	if err == mongo.ErrNoDocuments {
 		return "", fmt.Errorf("el username %s no existe", l.Username)
 	}
 

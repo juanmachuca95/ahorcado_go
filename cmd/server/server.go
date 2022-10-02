@@ -50,6 +50,9 @@ func grpcHandlerFunc(grpcServer *grpc.Server, otherHandler http.Handler) http.Ha
 			grpcServer.ServeHTTP(w, r)
 		} else {
 			fmt.Println("REST")
+			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, ResponseType")
 			otherHandler.ServeHTTP(w, r)
 		}
 	}), &http2.Server{})
