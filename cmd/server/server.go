@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/joho/godotenv"
 	"github.com/juanmachuca95/ahorcado_go/game/handler"
 	database "github.com/juanmachuca95/ahorcado_go/pkg/database/mongo"
 	"github.com/juanmachuca95/ahorcado_go/pkg/interceptor"
@@ -32,7 +31,6 @@ var (
 )
 
 func main() {
-	LoadEnv()
 	port = os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -56,13 +54,6 @@ func grpcHandlerFunc(grpcServer *grpc.Server, otherHandler http.Handler) http.Ha
 			otherHandler.ServeHTTP(w, r)
 		}
 	}), &http2.Server{})
-}
-
-func LoadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 }
 
 func makeGrpcServer(address string) (*grpc.ClientConn, *grpc.Server) {

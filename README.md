@@ -1,35 +1,12 @@
 # 💀 (Ahorcado) Multiplayer - Golang
 
-Este juego surgue de la necesidad de experimentar en el maravilloso mundo de los servicios gRPC y sus correspondientes implementaciones. Soy novato en la creación de juegos multijugador, por favor disfruta del juego teniendo en cuenta sus limitaciones. 
-
-Inspirado en el fantastico blog de 
- https://jbrandhorst.com/post/gopherjs-client-grpc-server-3/ Lectura sin desperdicio 👍
-
-Probar el service con Evans con certificado tls: 
-```zsh
-evans --tls --cert cert/server-cert.pem --certkey cert/server-key.pem --cacert cert/ca-cert.pem --host "localhost" -r -p 8080 --verbose
-```
-
-Probar el service con grpcurl eludiendo el certificado:
+Server developed in go using gRPC for communications that allows you to play the hangman game in a multiplayer way.
+For this process it is necessary to previously have an account in mongo.cloud with a database for the game loaded. You just need two collections users and game. And set the credentials ```MONGODB_NAME``` and ```MONGODB_PASSWORD```
 
 ```zsh
-./grpcurl --insecure localhost:8080 list
+docker run --env MONGODB_NAME=xxx --env MONGODB_PASSWORD=xxx -p 8080:8080 juanmachuca95/ahorcado:v1 -d
 ```
 
-Probar el service con curl:
-```zsh
-curl -k -X GET https://localhost:8080/api/v1/game 
-```
-
-
-Esta implementación permite jugarlo de manera local. 
-Proximamente será subida una version online sencilla. 
+This is the game server, but the client for it is also developed.
 
 Hecho con mucho cariño <b>@juanmachuca95</b>
-
-## Seguir estudiando google cloud para implementar la api gRPC Gateway
-https://cloud.google.com/api-gateway/docs/grpc-overview
-https://medium.com/swlh/rest-over-grpc-with-grpc-gateway-for-go-9584bfcbb835
-https://cloud.google.com/endpoints/docs/grpc/transcoding
-
-## Mocking test mongodb guia https://medium.com/@victor.neuret/mocking-the-official-mongo-golang-driver-5aad5b226a78

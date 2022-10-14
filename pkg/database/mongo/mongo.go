@@ -30,6 +30,5 @@ func Connect() *mongo.Database {
 	}
 
 	db := client.Database("ahorcado")
-	fmt.Println("Successfully connected and pinged.")
 	return db
 }
