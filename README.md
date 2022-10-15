@@ -6,7 +6,7 @@ For this process it is necessary to previously have an account in mongo.cloud wi
  And set the credentials ```MONGODB_NAME``` and ```MONGODB_PASSWORD```
 
 ```zsh
-docker run --env MONGODB_NAME=xxx --env MONGODB_PASSWORD=xxx -p 8080:8080 juanmachuca95/ahorcado:v1 -d
+docker run --env MONGODB_NAME=xxx --env MONGODB_PASSWORD=xxx -p 8080:8080 juanmachuca95/ahorcado:v1
 ```
 
 You can find the client to join the game in https://github.com/juanmachuca95/ahorcado_go 

@@ -76,6 +76,7 @@ func (g *game) Start(gameID string) {
 	if err != nil {
 		panic("unexpected error")
 	}
+
 	// Escribiendo los mensajes recibidos.
 	var quit = make(chan int)
 	go func() {
@@ -98,9 +99,10 @@ func (g *game) Start(gameID string) {
 	for {
 		select {
 		case <-quit: // win game
-			pterm.Info.Println("Game finished")
 			TRIES = 6
 			leave = true
+			pterm.Info.Println("Game finished ", leave)
+			return
 		default:
 			if leave {
 				if err := stream.CloseSend(); err != nil {
@@ -137,9 +139,10 @@ func (g *game) ShowInfo(game *ah.Game) {
 		TRIES--
 		frames.Frames(TRIES)
 		if TRIES == 0 {
-			pterm.FgRed.Println("😥 Sorry you lost, better luck next time")
+			pterm.FgRed.Println("😥 Sorry you lost, better luck next time. you exhausted the number of possible attempts")
 			pterm.Println()
 			// informar que ha perdido el game en el servidor
+			return
 		}
 	}
 
