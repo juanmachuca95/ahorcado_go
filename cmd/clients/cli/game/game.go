@@ -76,8 +76,6 @@ func (g *game) Start(gameID string) {
 	if err != nil {
 		panic("unexpected error")
 	}
-	defer stream.CloseSend()
-
 	// Escribiendo los mensajes recibidos.
 	var quit = make(chan int)
 	go func() {
@@ -96,17 +94,18 @@ func (g *game) Start(gameID string) {
 	}()
 
 	var input string
-	leave := false
+	var leave bool
 	for {
 		select {
 		case <-quit: // win game
 			pterm.Info.Println("Game finished")
-			leave = true
 			TRIES = 6
-			return
+			leave = true
 		default:
 			if leave {
-				stream.CloseSend()
+				if err := stream.CloseSend(); err != nil {
+					log.Fatal(err)
+				}
 				return
 			}
 

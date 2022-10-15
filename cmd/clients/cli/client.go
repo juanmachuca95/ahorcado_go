@@ -9,7 +9,6 @@ import (
 )
 
 var (
-	TRIES      = 6
 	serverAddr = flag.String("host", "localhost:8080", "The server address in the format of host:port")
 	username   = flag.String("user", "Guest", "Username to join the game")
 )

@@ -9,6 +9,21 @@ For this process it is necessary to previously have an account in mongo.cloud wi
 docker run --env MONGODB_NAME=xxx --env MONGODB_PASSWORD=xxx -p 8080:8080 juanmachuca95/ahorcado:v1 -d
 ```
 
+You can find the client to join the game in https://github.com/juanmachuca95/ahorcado_go 
+
+```go
+git clone https://github.com/juanmachuca95/ahorcado_go
+
+cd ahorcado_go
+// Not need flag -host if you test in local
+go run cmd/clients/cli/client.go -user=juanmachuca95 -host=<youhost>
+
+// or 
+./ahorcado_cli -user=juanmachuca95 -host=<youhost>
+```
+
+![ahorcado](ahorcado.png)
+
 This is the game server, but the client for it is also developed.
 You have three from CLI
 * Join the currente game
@@ -18,7 +33,7 @@ You have three from CLI
 A user will be created automatically with the flag ```-user=<youruser>``` . The rest is intuitive
 
 
-![ahorcado](ahorcado.png)
+This game was make with only goal to learn more about mongodb, test in mongodb, grpc stream-bidi, gateway-grpc, docker, docker hub and tls cert to deploys. You feel free to collaborate to improve this approach.
 
 
-Hecho con mucho cariño <b>@juanmachuca95</b>
+Hecho con cariño <b>@juanmachuca95</b>
