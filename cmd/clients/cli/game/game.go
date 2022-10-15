@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/juanmachuca95/ahorcado_go/pkg/frames"
-	"github.com/juanmachuca95/ahorcado_go/pkg/helpers"
 	ah "github.com/juanmachuca95/ahorcado_go/protos/ahorcado"
 	"github.com/pterm/pterm"
 	"google.golang.org/grpc"
@@ -17,9 +16,14 @@ import (
 )
 
 const (
-	PLAY    = "--> ? Join The Game "
-	RANTING = "--> ? See Top Players"
-	EXIT    = "--> ? Exit"
+	PLAY              = "--> ? Join The Game "
+	RANTING           = "--> ? See Top Players"
+	EXIT              = "--> ? Exit"
+	_codeFound        = 1
+	_codeNotFound     = 2
+	_codeAlreadyFound = 3
+	_codeWinner       = 4
+	_codeUnexpected   = 5
 )
 
 var (
@@ -35,8 +39,10 @@ type Game interface {
 }
 
 type game struct {
+	gameID     string
 	conn       *grpc.ClientConn
 	client     ah.AhorcadoClient
+	stream     ah.Ahorcado_AhorcadoClient
 	username   string
 	serverAddr string
 }
@@ -71,48 +77,54 @@ func (g *game) Init() string {
 
 func (g *game) Start(gameID string) {
 	ctx := context.Background()
-	// Stream playing
 	stream, err := g.client.Ahorcado(ctx)
 	if err != nil {
 		panic("unexpected error")
 	}
-	defer stream.CloseSend()
+	g.stream = stream
+	g.gameID = gameID
 
 	// Escribiendo los mensajes recibidos.
 	var quit = make(chan int)
-	go func() {
-		for {
-			game, err := stream.Recv()
-			if err != nil {
-				return
-			}
+	go g.PrintMessageGame(quit)
+	g.InputGame(quit)
+}
 
-			g.ShowInfo(game)
-			if g.checkWin(game, g.username) {
-				quit <- 1
-				close(quit)
-			}
+func (g *game) PrintMessageGame(c chan int) {
+	for {
+		game, err := g.stream.Recv()
+		if err != nil {
+			return
 		}
-	}()
 
+		status, code := g.MessageStatus(game)
+		g.Attempts(code)
+		g.ShowInfo(game, status, code)
+		if g.checkWin(game, g.username) {
+			c <- 1
+			close(c)
+		}
+	}
+}
+
+func (g *game) InputGame(c chan int) {
 	var input string
 	leave := false
 	for {
 		select {
-		case <-quit: // win game
-			pterm.Info.Println("Game finished")
+		case <-c: // win game
 			leave = true
+			pterm.Info.Println("Game finished ", leave)
 			TRIES = 6
 			return
 		default:
 			if leave {
-				stream.CloseSend()
 				return
 			}
 
 			fmt.Scan(&input)
 			input = strings.ToTitle(input)
-			if err = stream.Send(&ah.Word{GameId: gameID, User: g.username, Word: input}); err != nil {
+			if err := g.stream.Send(&ah.Word{GameId: g.gameID, User: g.username, Word: input}); err != nil {
 				pterm.Warning.Println("Cannot send message to server - error: ", err.Error())
 				return
 			}
@@ -131,28 +143,17 @@ func (g *game) GetGame() (*ah.Game, error) {
 }
 
 // Show an status to the current game
-func (g *game) ShowInfo(game *ah.Game) {
+func (g *game) ShowInfo(game *ah.Game, status string, code int) {
 	pterm.Println()
-	status, code := helpers.MessageStatus(game.Usersend, g.username, game.Wordsend, game.Word, int(game.Status))
-	if code > 0 {
-		TRIES--
-		frames.Frames(TRIES)
-		if TRIES == 0 {
-			pterm.FgRed.Println("😥 Sorry you lost, better luck next time")
-			pterm.Println()
-			// informar que ha perdido el game en el servidor
-		}
-	}
-
 	// Print main game of the word
 	g.ShowWord(game.Word, game.Encontrados, len(game.Word))
-	pterm.Info.Println("El usuario", game.Usersend, " ha jugado: ", game.Wordsend,
+	pterm.Info.Println("El usuario", game.Usersend,
+		" ha jugado: ", game.Wordsend,
 		"\nLetras encontradas: ", game.Encontrados,
 		"\nIntentos: ", TRIES,
 		"\nEstatus: ", status,
 	)
 	pterm.Println()
-
 	g.PrintInput()
 }
 
@@ -190,9 +191,11 @@ func (g *game) checkWin(game *ah.Game, user string) bool {
 			return true
 		default:
 			g.DefeatMessage(game)
+			g.Exit()
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -248,6 +251,19 @@ func (g *game) PrintInput() {
 	pStyle.Print("Letter or word 👇")
 }
 
+func (g *game) Attempts(code int) {
+	if code > 0 {
+		TRIES--
+		frames.Frames(TRIES)
+		if TRIES == 0 {
+			pterm.FgRed.Println("😥 Sorry you lost, better luck next time")
+			pterm.Println()
+			// informar que ha perdido el game en el servidor
+			g.Exit()
+		}
+	}
+}
+
 func (g *game) DefeatMessage(game *ah.Game) {
 	pterm.Println()
 	pterm.FgYellow.Println("👎 Han estado más rapido que tú, la proxima será. La palabra era: ", game.Word)
@@ -262,4 +278,38 @@ func (g *game) VictoryMessage(game *ah.Game) {
 		panic("Cannot implement panel pterm")
 	}
 	pterm.DefaultBox.WithTitle("Ahorcado | Made by @juanmachuca95").WithTitleBottomRight().WithRightPadding(0).WithBottomPadding(0).Println(panels)
+}
+
+// game.Usersend, g.username, game.Wordsend, game.Word, int(game.Status)
+func (g *game) MessageStatus(game *ah.Game) (string, int) {
+	messageMe := false
+	if game.Usersend == g.username {
+		messageMe = true
+	}
+	switch game.Status {
+	case _codeFound:
+		if messageMe {
+			return fmt.Sprintf("¡Has encontrado la letra %s! 👍", game.Wordsend), 0
+		}
+		return fmt.Sprintf("El usario %s ha encontrado la letra %s 🔥", g.username, game.Wordsend), 0
+	case _codeNotFound:
+		if messageMe {
+			return fmt.Sprintf("La letra %s no tiene coincidencias! 👎", game.Wordsend), 1
+		}
+		return fmt.Sprintf("¡El usuario %s ha intentado la letra %s sin exito! 🖊️", g.username, game.Wordsend), 0
+	case _codeAlreadyFound:
+		if messageMe {
+			return fmt.Sprintf("La letra %s ya ha sido encontrada previamente! 🐢", game.Wordsend), 1
+		}
+		return fmt.Sprintf("¡El usuario %s ha intentado la letra %s pero ya ha sido encontrada! 🐢", g.username, game.Wordsend), 0
+	case _codeWinner:
+		if messageMe {
+			return fmt.Sprintf("🎉 Has ganado! 🎊 La palabra era %s 🏆", game.Word), 0
+		}
+		return fmt.Sprintf("¡El usuario %s ha ganado! 🐢 La palabra era: %s", g.username, game.Word), 0
+	case _codeUnexpected:
+		return "Ha ocurrido un error inesperado", 0
+	default:
+		return "", 0
+	}
 }
