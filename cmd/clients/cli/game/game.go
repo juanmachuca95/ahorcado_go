@@ -212,6 +212,7 @@ func (g *game) checkWin(game GameAhorcado, user string) bool {
 			return true
 		default:
 			g.DefeatMessage(game)
+			g.Exit()
 			return false
 		}
 	}
@@ -246,7 +247,6 @@ func (g *game) PanelOptions() {
 func (g *game) SeeRanking() {
 	ranking, err := g.client.GetTop(context.Background(), &emptypb.Empty{})
 	if err != nil {
-		g.conn.Close()
 		panic("Cannot consulting to server about top players")
 	}
 
