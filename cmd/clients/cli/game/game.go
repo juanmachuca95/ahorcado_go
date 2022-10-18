@@ -313,7 +313,7 @@ func (g *game) MessageStatus(game GameAhorcado) (string, int) {
 		if messageMe {
 			return fmt.Sprintf("¡Has encontrado la letra %s! 👍", game.Wordsend), 0
 		}
-		return fmt.Sprintf("El usario %s ha encontrado la letra %s 🔥", game.Usersend, game.Wordsend), 0
+		return fmt.Sprintf("El usuario %s ha encontrado la letra %s 🔥", game.Usersend, game.Wordsend), 0
 	case _codeNotFound:
 		if messageMe {
 			return fmt.Sprintf("La letra %s no tiene coincidencias! 👎", game.Wordsend), 1
