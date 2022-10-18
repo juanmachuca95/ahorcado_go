@@ -318,17 +318,17 @@ func (g *game) MessageStatus(game GameAhorcado) (string, int) {
 		if messageMe {
 			return fmt.Sprintf("La letra %s no tiene coincidencias! 👎", game.Wordsend), 1
 		}
-		return fmt.Sprintf("¡El usuario %s ha intentado la letra %s sin exito! 🖊️", g.username, game.Wordsend), 0
+		return fmt.Sprintf("¡El usuario %s ha intentado la letra %s sin exito! 🖊️", game.Usersend, game.Wordsend), 0
 	case _codeAlreadyFound:
 		if messageMe {
 			return fmt.Sprintf("La letra %s ya ha sido encontrada previamente! 🐢", game.Wordsend), 1
 		}
-		return fmt.Sprintf("¡El usuario %s ha intentado la letra %s pero ya ha sido encontrada! 🐢", g.username, game.Wordsend), 0
+		return fmt.Sprintf("¡El usuario %s ha intentado la letra %s pero ya ha sido encontrada! 🐢", game.Usersend, game.Wordsend), 0
 	case _codeWinner:
 		if messageMe {
 			return fmt.Sprintf("🎉 Has ganado! 🎊 La palabra era %s 🏆", game.Word), 0
 		}
-		return fmt.Sprintf("¡El usuario %s ha ganado! 🐢 La palabra era: %s", g.username, game.Word), 0
+		return fmt.Sprintf("¡El usuario %s ha ganado! 🐢 La palabra era: %s", game.Usersend, game.Word), 0
 	case _codeUnexpected:
 		return "Ha ocurrido un error inesperado", 0
 	default:
